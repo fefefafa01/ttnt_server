@@ -30,11 +30,11 @@ const io = new Server(server, {
 app.use(helmet());
 app.use(cors ({
   origin: "http://localhost:3000",
-  credentials: "true",
+  credentials: true,
   })
 );
 
-app.use(express.json())
+app.use(express.json({strict:false}))
 app.use (session({
   secret:process.env.COOKIE_SECRET,
   credentials: 'true',
