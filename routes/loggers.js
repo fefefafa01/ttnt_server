@@ -7,6 +7,7 @@ const dbLogger = (req, res) => {
     formSchema
         .validate(formData)
         .catch(err => {
+            console.log(err)
             res.status(422).send();
             // createLogger(
             //     transports [

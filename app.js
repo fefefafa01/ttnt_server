@@ -18,7 +18,7 @@ var authRouter = require('./routes/authRouter'); //Added Router Here
 const server = require("http").createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://192.168.11.143:3005",
     credentials: "true",
   }
 })
@@ -29,7 +29,7 @@ const io = new Server(server, {
 
 app.use(helmet());
 app.use(cors ({
-  origin: "http://localhost:3000",
+  origin: "http://192.168.11.143:3005",
   credentials: true,
   })
 );
@@ -53,8 +53,8 @@ app.use('/auth', authRouter) // Auth Router
  * Listen on provided port, on all network interfaces.
  */
 io.on("connect", socket => {});
-server.listen(5000, () => {
-  console.log('Server is listening on 5000')
+server.listen(5005, () => {
+  console.log('Server is listening on 5005')
 })
 
 

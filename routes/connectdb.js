@@ -17,5 +17,14 @@ const client = new Client({
     password: process.env.DATABASE_PASSWORD,
     port: process.env.DATABASE_PORT
 })
+client.connect();
+
+// const client = new Client({
+//     user: "postgre",
+//     host: "localhost",
+//     database: "postgres",
+//     password: "123456",
+//     port: 5432
+// })
 
 module.exports = client;
