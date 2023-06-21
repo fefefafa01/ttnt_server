@@ -20,8 +20,7 @@ router
         const potentialLogin = await client.query(
             "SELECT * FROM users u WHERE u.email= $1", [req.body.email])
         //........//
-        if (potentialLogin.rowCount > 0) {
-                
+        if (potentialLogin.rowCount > 0) {              
         //User Found, Checking Password
         const isSamePass = await bcrypt.compare(
             req.body.password, potentialLogin.rows[0].passhash)
@@ -32,17 +31,20 @@ router
                     id: potentialLogin.rows[0].id,
                 }
                 //Logging Accessed to account (U Minh)
+                console.log("Logged In");
                 res.json({loggedIn: true, email: req.body.email}) //Replacable
             } else {
                 //Invalid Password
                 //Logger
                 res.json({loggedIn: false, status: "Wrong Email or Password"})
-                console.log("User Invalid");
+                console.log("Invalid Password");
             }
         } else {
             //Invalid Email
             //Logger
             res.json({loggedIn: false, status: "Wrong Email or Password"})
+            console.log("Invalid Email");
+
         }
   
     })
