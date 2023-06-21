@@ -6,7 +6,6 @@ const bcrypt = require('bcrypt')
 
 
 router
-
     .route("/login") 
     // .get(async (req, res) => {
     //     if (req.session.user && req.session.user.email) {
@@ -51,25 +50,32 @@ router
 
 router.post("/reg", async (req, res) => {
     dbLogger(req, res);
-    const hashedPass = await bcrypt.hash("123456", 10);
+
     const existingUser = await client.query("SELECT email from users WHERE email=$1", 
     [req.body.email])
 
     if(existingUser.rowCount===0) {
         //reg
-        const hashedPass = await bcrypt.hash("123456", 10);
+        console.log('Pre-Hashed')
+
+        const hashedPass = await bcrypt.hash(req.body.password, 10);
+        console.log('Hashed')
         const newUserQuery = await client.query(
             "INSERT INTO users(email, firstname, lastname, passhash) values ($1, $2, $3, $4) RETURNING email",
-            [req.body.email, req.body.firstname, req.body.lastname, hashedPass]
+            [req.body.email, req.body.first_name, req.body.last_name, hashedPass]
         );
+        console.log('Inserted')
+
         req.session.user = {
             email: req.body.email,
             id: newUserQuery.rows[0].id,
         }
         //Logging Accessed to account (U Minh)
-        res.json({loggedIn: true, emai: req.body.email}) //Replacable
+        console.log('Registered')
+        res.json({loggedIn: true, email: req.body.email}) //Replacable
     } else {
         //Logging Error (U Minh)
+        console.log('Email Taken')
         res.json({loggedIn: false, status: 'Email Taken'}) //Replacable with loggers
     }
     
