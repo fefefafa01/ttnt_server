@@ -75,8 +75,13 @@ router.post("/reg", async (req, res) => {
         res.json({loggedIn: true, email: req.body.email}) //Replacable
     } else {
         //Logging Error (U Minh)
-        console.log('Email Taken')
-        res.json({loggedIn: false, status: 'Email Taken'}) //Replacable with loggers
+        if (!req.body.email) {
+            console.log('Null Email')
+            res.json({loggedIn: false, status: 'Null Email'}) //Replacable with loggers
+        } else {
+            console.log('Email Taken')
+            res.json({loggedIn: false, status: 'Email Taken'}) //Replacable with loggers
+        }
     }
     
 });
