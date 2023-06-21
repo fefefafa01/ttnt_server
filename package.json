@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "set PORT=5005 && node ./app.js"
+    "start": "node ./app.js"
   },
   "dependencies": {
     "@whatsapp-clone/common-validate": "1.0.2",
