@@ -1,46 +1,68 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var cors = require('cors');
+// var createError = require('http-errors');
+// var path = require('path');
+// var cookieParser = require('cookie-parser');
+// var logger = require('morgan');
+var express = require("express");
+const app = express();
+var cors = require("cors");
+const helmet = require("helmet");
+const { Server } = require("socket.io");
+const session = require("express-session");
+require("dotenv").config();
+var authRouter = require("./routes/authRouter"); //Added Router Here
+const logger = require("./routes/logger");
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var testAPIRouter = require('./routes/testconnection'); //Added Router Here
-require('./routes/connectdb') //Added Connection to DB
+/**
+ * Create HTTP server.
+ */
 
-var app = express();
+const server = require("http").createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:3000",
+        credentials: "true",
+    }
+})
+
+/**
+ * Routing and create Session
+ */
+
+app.use(helmet());
+app.use(cors ({
+    origin: "http://localhost:3000",
+    credentials: true,
+    })
+);
+
+app.use(express.json({strict:false}))
+app.use (session({
+    secret:process.env.COOKIE_SECRET,
+    credentials: 'true',
+    name: "sid",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.ENVIROMENT === "production",
+        httpOnly: true,
+        sameSite: process.env.ENVIROMENT === "production" ? "none" : "lax",
+    }
+    }))
+app.use('/auth', authRouter) // Auth Router
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+io.on("connect", (socket) => {});
+server.listen(5000, () => {
+    logger.dlogger.log("info", "Server is listening on 5000");
+});
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+var indexRouter = require("./routes/index");
+const { signedCookie } = require("cookie-parser");
+app.set("view engine", "jade");
+app.use("/", indexRouter);
 
-app.use(cors());
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/testconnection', testAPIRouter) //Added Router Here
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
-
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
+// app.use(logger('dev'));
 module.exports = app;

@@ -1,29 +1,30 @@
 const { Client } = require('pg');
-const logger = require('./loggers')
+require ('dotenv').config()
+//const logger = require('./loggers')
+
+// const client = new Client({
+//     user: "gmp",
+//     host: "192.168.11.57",
+//     database: "GMP",
+//     password: "123456",
+//     port: 5432
+// })
 
 const client = new Client({
-    user: "postgres",
-    host: "localhost",
-    database: "postgres",
-    password: "147596382",
-    port: 5432
+    user: process.env.DATABASE_USER,
+    host: process.env.DATABASE_HOST,
+    database: process.env.DATABASE_NAME,
+    password: process.env.DATABASE_PASSWORD,
+    port: process.env.DATABASE_PORT
 })
-
 client.connect();
 
-const query = "SELECT * FROM users";
+// const client = new Client({
+//     user: "postgre",
+//     host: "localhost",
+//     database: "postgres",
+//     password: "123456",
+//     port: 5432
+// })
 
-client.query(query, (err, res) => {
-    if (err) {
-        console.error(err);
-        logger.dbLogger.log('error',query)
-        return;
-    }
-    if (!err){
-        for (let row of res.rows)  {
-        console.log(row);
-        }
-        logger.dbLogger.log('info',query)
-    }
-    client.end();
-});
+module.exports = client;
