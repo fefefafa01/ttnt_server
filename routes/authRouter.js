@@ -31,17 +31,20 @@ router
                 }
                 //Logging Accessed to account (U Minh)
                 logger.dlogger.log("info", "Logged In");
+                console.log('Logged In');
                 res.json({ loggedIn: true, email: req.body.email }); //Replacable
             } else {
                 //Invalid Password
                 //Logger
                 res.json({ loggedIn: false, status: "Wrong Email or Password" });
+                console.log('Wrong Password');
                 logger.dlogger.log("error", "Invalid Password");
             }
         } else {
             //Invalid Email
             //Logger
             res.json({ loggedIn: false, status: "Wrong Email or Password" });
+            console.log('Wrong Email');
             logger.dlogger.log("error", "Invalid Email");
         }
     })
@@ -89,7 +92,7 @@ router.post("/resetpwd", async (req, res) => {
     //reg
     const hashedPass = await bcrypt.hash(req.body.password, 10);
     const newPasswordQuery = await client.query(
-      "UPDATE users SET password = $1 WHERE email = $2",
+      "UPDATE users SET passhash = $1 WHERE email = $2",
       [hashedPass, req.body.email]
     );
     req.session.user = {
@@ -98,10 +101,12 @@ router.post("/resetpwd", async (req, res) => {
     console.log(req.body.email);
     //Logging Accessed to account (U Minh)
     res.json({ loggedIn: true, email: req.body.email }); //Replacable
+    console.log('Changed Pass');
     logger.dlogger.log("info", "Reset Password successfully");
   } else {
     //Logging Error (U Minh)
     res.json({ loggedIn: false, status: "Email not Valid" }); //Replacable with loggers
+    console.log('Wrong Email');
     logger.dlogger.log("error", "Email not valid");
   }
 });
