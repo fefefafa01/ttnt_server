@@ -1,9 +1,9 @@
 const express = require("express");
-const dbLogger = require('./loggers.js')
+const dbLogger = require("./loggers.js");
 const router = express.Router();
-const client = require('./connectdb')
-const bcrypt = require('bcrypt')
-
+const client = require("./connectdb");
+const bcrypt = require("bcrypt");
+const logger = require("./logger.js");
 
 router
     .route("/login") 
@@ -30,22 +30,20 @@ router
                     id: potentialLogin.rows[0].id,
                 }
                 //Logging Accessed to account (U Minh)
-                console.log("Logged In");
-                res.json({loggedIn: true, email: req.body.email}) //Replacable
+                logger.dlogger.log("info", "Logged In");
+                res.json({ loggedIn: true, email: req.body.email }); //Replacable
             } else {
                 //Invalid Password
                 //Logger
-                res.json({loggedIn: false, status: "Wrong Email or Password"})
-                console.log("Invalid Password");
+                res.json({ loggedIn: false, status: "Wrong Email or Password" });
+                logger.dlogger.log("error", "Invalid Password");
             }
         } else {
             //Invalid Email
             //Logger
-            res.json({loggedIn: false, status: "Wrong Email or Password"})
-            console.log("Invalid Email");
-
+            res.json({ loggedIn: false, status: "Wrong Email or Password" });
+            logger.dlogger.log("error", "Invalid Email");
         }
-  
     })
 
 router.post("/reg", async (req, res) => {
@@ -65,25 +63,46 @@ router.post("/reg", async (req, res) => {
             [req.body.email, req.body.first_name, req.body.last_name, hashedPass]
         );
         console.log('Inserted')
-
         req.session.user = {
             email: req.body.email,
             id: newUserQuery.rows[0].id,
         }
         //Logging Accessed to account (U Minh)
-        console.log('Registered')
-        res.json({loggedIn: true, email: req.body.email}) //Replacable
+        res.json({ loggedIn: true, email: req.body.email }); //Replacable
+        logger.dlogger.log("info", "Account signed up successfully");
     } else {
         //Logging Error (U Minh)
-        if (!req.body.email) {
-            console.log('Null Email')
-            res.json({loggedIn: false, status: 'Null Email'}) //Replacable with loggers
-        } else {
-            console.log('Email Taken')
-            res.json({loggedIn: false, status: 'Email Taken'}) //Replacable with loggers
-        }
+        res.json({ loggedIn: false, status: "Email Taken" }); //Replacable with loggers
+        logger.dlogger.log("error", "Email taken");
     }
-    
 });
 
+router.post("/resetpwd", async (req, res) => {
+  dbLogger(req, res);
+
+  const existingUser = await client.query(
+    "SELECT email from users WHERE email=$1",
+    [req.body.email]
+  );
+
+  if (existingUser.rowCount > 0) {
+    //reg
+    const hashedPass = await bcrypt.hash(req.body.password, 10);
+    const newPasswordQuery = await client.query(
+      "UPDATE users SET password = $1 WHERE email = $2",
+      [hashedPass, req.body.email]
+    );
+    req.session.user = {
+      email: req.body.email,
+    };
+    console.log(req.body.email);
+    //Logging Accessed to account (U Minh)
+    res.json({ loggedIn: true, email: req.body.email }); //Replacable
+    logger.dlogger.log("info", "Reset Password successfully");
+  } else {
+    //Logging Error (U Minh)
+    res.json({ loggedIn: false, status: "Email not Valid" }); //Replacable with loggers
+    logger.dlogger.log("error", "Email not valid");
+  }
+});
 module.exports = router;
