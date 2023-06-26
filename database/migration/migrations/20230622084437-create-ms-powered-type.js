@@ -2,44 +2,34 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('users', {
-      id: {
+    await queryInterface.createTable('MS_Powered_Types', {
+      Powered_Type_Id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      email: {
-        allowNull: false,
-        type: Sequelize.STRING
-      },
-      first_name: {
-        type: Sequelize.STRING
-      },
-      last_name: {
-        type: Sequelize.STRING
-      },
-      password: {
-        type: Sequelize.STRING
-      },
-      permission: {
+      Powered_Type: {
         type: Sequelize.STRING(10)
       },
-      created_at: {
+      Is_Active: {
+        type: Sequelize.BOOLEAN
+      },
+      Created_Date: {
         type: Sequelize.DATE
       },
-      created_user: {
+      Created_By: {
         type: Sequelize.INTEGER
       },
-      updated_at: {
+      Updated_Date: {
         type: Sequelize.DATE
       },
-      updated_user: {
+      Updated_By: {
         type: Sequelize.INTEGER
-      }
+      },
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('users');
+    await queryInterface.dropTable('MS_Powered_Types');
   }
 };

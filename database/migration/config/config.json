@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "postgres",
+    "username": "gmp",
     "password": "123456",
-    "database": "Vehicle_Parts_Sales",
-    "host": "localhost",
+    "database": "GMP",
+    "host": "192.168.11.57",
     "dialect": "postgres"
   },
   "test": {

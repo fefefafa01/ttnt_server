@@ -17,7 +17,7 @@ router
     .post(async (req, res) => {
     dbLogger(req, res);
         const potentialLogin = await client.query(
-            "SELECT * FROM users u WHERE u.email= $1", [req.body.email])
+            "SELECT * FROM MS_User u WHERE u.Username= $1", [req.body.email])
         //........//
         if (potentialLogin.rowCount > 0) {              
         //User Found, Checking Password
@@ -36,15 +36,15 @@ router
             } else {
                 //Invalid Password
                 //Logger
-                res.json({ loggedIn: false, status: "Wrong Email or Password" });
-                console.log('Wrong Password');
+                res.json({ loggedIn: false, status: "Wrong Password" });
+                console.log(res.status);
                 logger.dlogger.log("error", "Invalid Password");
             }
         } else {
             //Invalid Email
             //Logger
-            res.json({ loggedIn: false, status: "Wrong Email or Password" });
-            console.log('Wrong Email');
+            res.json({ loggedIn: false, status: "Wrong Email" });
+            console.log(res.status);
             logger.dlogger.log("error", "Invalid Email");
         }
     })
@@ -52,7 +52,7 @@ router
 router.post("/reg", async (req, res) => {
     dbLogger(req, res);
 
-    const existingUser = await client.query("SELECT email from users WHERE email=$1", 
+    const existingUser = await client.query("SELECT Username from MS_User WHERE Username=$1", 
     [req.body.email])
 
     if(existingUser.rowCount===0) {
@@ -62,7 +62,7 @@ router.post("/reg", async (req, res) => {
         const hashedPass = await bcrypt.hash(req.body.password, 10);
         console.log('Hashed')
         const newUserQuery = await client.query(
-            "INSERT INTO users(email, firstname, lastname, passhash) values ($1, $2, $3, $4) RETURNING email",
+            "INSERT INTO MS_User(Username, Firstname, Lastname, password) values ($1, $2, $3, $4) RETURNING Username",
             [req.body.email, req.body.first_name, req.body.last_name, hashedPass]
         );
         console.log('Inserted')
@@ -77,6 +77,7 @@ router.post("/reg", async (req, res) => {
         //Logging Error (U Minh)
         res.json({ loggedIn: false, status: "Email Taken" }); //Replacable with loggers
         logger.dlogger.log("error", "Email taken");
+        console.log('Email Taken')
     }
 });
 
@@ -84,7 +85,7 @@ router.post("/resetpwd", async (req, res) => {
   dbLogger(req, res);
 
   const existingUser = await client.query(
-    "SELECT email from users WHERE email=$1",
+    "SELECT Username from MS_User WHERE Username=$1",
     [req.body.email]
   );
 
@@ -92,7 +93,7 @@ router.post("/resetpwd", async (req, res) => {
     //reg
     const hashedPass = await bcrypt.hash(req.body.password, 10);
     const newPasswordQuery = await client.query(
-      "UPDATE users SET passhash = $1 WHERE email = $2",
+      "UPDATE MS_User SET Password = $1 WHERE Username = $2",
       [hashedPass, req.body.email]
     );
     req.session.user = {
