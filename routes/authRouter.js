@@ -17,12 +17,12 @@ router
     .post(async (req, res) => {
     dbLogger(req, res);
         const potentialLogin = await client.query(
-            "SELECT * FROM users u WHERE u.email= $1", [req.body.email])
+            "SELECT * FROM MS_User WHERE Username= $1", [req.body.email])
         //........//
         if (potentialLogin.rowCount > 0) {              
         //User Found, Checking Password
         const isSamePass = await bcrypt.compare(
-            req.body.password, potentialLogin.rows[0].passhash)
+            req.body.password, potentialLogin.rows[0].password)
             if (isSamePass) {
                 //Login
                 req.session.user = {
@@ -32,6 +32,17 @@ router
                 //Logging Accessed to account (U Minh)
                 logger.dlogger.log("info", "Logged In");
                 console.log('Logged In');
+                // const userRoleID = await client.query(
+                //     "SELECT Rold_Id FROM MS_User WHERE email= $1", [req.body.email]
+                // )
+                // const userRole = await client.query(
+                //     "SELECT Role_Name FROM MS_Roles WHERE Role_Id= $1", [userRoleID]
+                // )
+                // if (userRole==='Admin') {
+                //     res.json({ loggedIn: true, email: req.body.email, status:'Admin User'})
+                // } else if (userRole==='Viewer') {
+                //     res.json({ loggedIn: true, email: req.body.email, status:'Viewer User'})
+                // }
                 res.json({ loggedIn: true, email: req.body.email }); //Replacable
             } else {
                 //Invalid Password
@@ -50,11 +61,18 @@ router
     })
 
 router.post("/reg", async (req, res) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
     dbLogger(req, res);
-
-    const existingUser = await client.query("SELECT email from users WHERE email=$1", 
+    if (!req.body.first_name || !req.body.last_name) {
+        res.json({ loggedIn: false, status: 'Name must not be empty'})
+        return;
+    } else if (!regex.test(req.body.email)) {
+        res.json({ loggedIn: false, status: 'Invalid Email'})
+        return;
+    }
+    console.log('Passed')
+    const existingUser = await client.query("SELECT Username from MS_User WHERE Username=$1", 
     [req.body.email])
-
     if(existingUser.rowCount===0) {
         //reg
         console.log('Pre-Hashed')
@@ -66,7 +84,7 @@ router.post("/reg", async (req, res) => {
             const hashedPass = await bcrypt.hash(req.body.password, 10);
             console.log('Hashed')
             const newUserQuery = await client.query(
-                "INSERT INTO users(email, firstname, lastname, passhash) values ($1, $2, $3, $4) RETURNING email",
+                "INSERT INTO MS_User(Username, Firstname, Lastname, Password) values ($1, $2, $3, $4) RETURNING Username",
                 [req.body.email, req.body.first_name, req.body.last_name, hashedPass]
             );
             console.log('Inserted')
@@ -90,7 +108,7 @@ router.post("/resetpwd", async (req, res) => {
     dbLogger(req, res);
 
     const existingUser = await client.query(
-        "SELECT email from users WHERE email=$1",
+        "SELECT Username from MS_User WHERE Username=$1",
         [req.body.email]
     );
     if (existingUser.rowCount > 0) {
@@ -101,7 +119,7 @@ router.post("/resetpwd", async (req, res) => {
         } else {
             const hashedPass = await bcrypt.hash(req.body.password, 10);
             const newPasswordQuery = await client.query(
-            "UPDATE users SET passhash = $1 WHERE email = $2",
+            "UPDATE MS_User SET Password = $1 WHERE Username = $2",
             [hashedPass, req.body.email]
             );
             req.session.user = {
