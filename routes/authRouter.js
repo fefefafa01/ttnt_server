@@ -101,6 +101,7 @@ router.post("/reg", async (req, res) => {
         //Logging Error (U Minh)
         res.json({ loggedIn: false, status: "Email Taken" }); //Replacable with loggers
         logger.dlogger.log("error", "Email taken");
+        console.log('Email Taken')
     }
 });
 
