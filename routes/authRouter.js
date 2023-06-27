@@ -66,8 +66,8 @@ router.post("/reg", async (req, res) => {
     if (!req.body.first_name || !req.body.last_name) {
         res.json({ loggedIn: false, status: 'Name must not be empty'})
         return;
-    } else if (!regex.test(req.body.email)) {
-        res.json({ loggedIn: false, status: 'Invalid Email'})
+    } else if (!regex.test(req.body.email) || !req.body.password) {
+        res.json({ loggedIn: false, status: 'Invalid Email or Password'})
         return;
     }
     console.log('Passed')
