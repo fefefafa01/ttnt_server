@@ -82,7 +82,12 @@ router.post("/reg", async (req, res) => {
 
 router.post("/resetpwd", async (req, res) => {
   dbLogger(req, res);
-
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+  //Checked email
+  if (!regex.test(req.body.email)) {
+    res.json({ loggedIn: false, status: "Invalid Email" });
+    return;
+  }
   const existingUser = await client.query(
     "SELECT email from users WHERE email=$1",
     [req.body.email]
@@ -100,12 +105,12 @@ router.post("/resetpwd", async (req, res) => {
     };
     console.log(req.body.email);
     //Logging Accessed to account (U Minh)
-    res.json({ loggedIn: true, email: req.body.email }); //Replacable
+    res.json({ loggedIn: true, email: req.body.email, status: "Changed Pass" }); //Replacable
     logger.dlogger.log("info", "Reset Password successfully");
   } else {
     //Logging Error (U Minh)
-    res.json({ loggedIn: false, status: "Email not Valid" }); //Replacable with loggers
-    logger.dlogger.log("error", "Email not valid");
+    res.json({ loggedIn: false, status: "Email Unavailable" }); //Replacable with loggers
+    logger.dlogger.log("error", "Email Unavailable");
   }
 });
 module.exports = router;
