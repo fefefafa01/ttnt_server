@@ -16,10 +16,22 @@ router
         const qrole = await client.query(
             "SELECT role_id FROM ms_user WHERE username = $1", [req.body]
         )
-        if (qrole.rows[0].role_id===null || qrole.rows[0].role_id === 0) {
-            role = "Viewer"
+        // if (qrole.rows[0].role_id===null || qrole.rows[0].role_id === 0) {
+        //     role = "Viewer"
+        // } else {
+        //     role = "Admin"
+        // }
+        if (qrole.rows[0].role_id!==null) {
+            const rolename = await client.query(
+                "SELECT role_name FROM ms_role WHERE role_id = $1", [qrole.rows[0].role_id]
+            )
+            if (rolename.rows[0].role_name===null || rolename.rows[0].role_name==="Viewer") {
+                role = "Viewer"
+            } else if (rolename.rows[0].role_name==="Admin") {
+                role = "Admin"
+            }
         } else {
-            role = "Admin"
+            role = "Viewer"
         }
         firstname = qfirstname.rows[0].firstname
         lastname = qlastname.rows[0].lastname
