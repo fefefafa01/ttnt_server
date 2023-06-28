@@ -9,8 +9,9 @@ const helmet = require("helmet");
 const { Server } = require("socket.io");
 const session = require("express-session");
 require("dotenv").config();
-var authRouter = require("./routes/authRouter"); //Added Router Here
-const logger = require("./routes/logger");
+var authRouter = require("./routes/authRouter"); //Added Authentication Router
+const logger = require("./routes/logger"); //Added Logger
+var profileRouter = require("./routes/profileRouter") //Added Profile Router
 
 /**
  * Create HTTP server.
@@ -49,6 +50,7 @@ app.use (session({
     }
     }))
 app.use('/auth', authRouter) // Auth Router
+app.use('/prof', profileRouter) // Profile Router
 
 /**
  * Listen on provided port, on all network interfaces.
