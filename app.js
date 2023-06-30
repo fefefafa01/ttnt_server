@@ -12,7 +12,7 @@ require("dotenv").config();
 var authRouter = require("./routes/authRouter"); //Added Authentication Router
 const logger = require("./routes/logger"); //Added Logger
 var profileRouter = require("./routes/profileRouter") //Added Profile Router
-
+var pdfRouter = require("./routes/pdfRouter") //Added PDF Parts Detail Router
 /**
  * Create HTTP server.
  */
@@ -51,6 +51,7 @@ app.use (session({
     }))
 app.use('/auth', authRouter) // Auth Router
 app.use('/prof', profileRouter) // Profile Router
+app.use('/exp', pdfRouter) //PDF Parts Detail Router
 
 /**
  * Listen on provided port, on all network interfaces.
