@@ -77,7 +77,7 @@ module.exports = {
         const country = countries[0].map((country) => country.country_name);
 
         const data = [];
-        const numPart = 3;
+        const numPart = 50;
         for (let i = 0; i < numPart; i++) {
             //vehicle_code
             const randomManufacturerId = chanceObj.pickone(manufacturerIds);
