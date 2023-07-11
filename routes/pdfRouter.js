@@ -76,7 +76,7 @@ router.route("/premium").post(async (req, res) => {
 
     //Querying Corresponding Part IDs
     const part = await client.query(
-        "SELECT * FROM part_car_info WHERE car_info_id = $1",
+        "SELECT * FROM part WHERE part_code = $1",
         [req.body]
     );
     for (let i = 0; i < part.rowCount; i++) {
@@ -89,13 +89,14 @@ router.route("/premium").post(async (req, res) => {
             "SELECT * FROM part_aisin_premium WHERE part_id = $1",
             [partid[i]]
         );
+
         for (let a = 0; a < pre.rowCount; a++) {
             premiumid[a] = pre.rows[a].aisin_premium_id;
         }
-    
+
         //Querying Into Premium
         for (let a = 0; a < premiumid.length; a++) {
-
+            var count = 2;
             var PreQue = await client.query(
                 "SELECT * FROM aisin_premium WHERE aisin_premium_id = $1",
                 [premiumid[a]]
@@ -114,7 +115,16 @@ router.route("/premium").post(async (req, res) => {
             PremiumArr.Lengthinch = PreQue.rows[0].length_inch;
             PremiumArr.Lengthmm = PreQue.rows[0].length_mm;
             PremiumArr.Heightmm = PreQue.rows[0].height_mm;
-            TotalPre.push(PremiumArr);
+            
+            for (let b = 0; b < TotalPre.length; b++) {
+                if (TotalPre[b].PremiumCode===PremiumArr.PremiumCode) {
+                    count=0;
+                    break;
+                }
+            }
+            if (count !== 0) {
+                TotalPre.push(PremiumArr);
+            }
         }
     }
     
@@ -123,13 +133,13 @@ router.route("/premium").post(async (req, res) => {
 
 router.route("/subpremium").post(async (req, res) => {
     //Variables
-    var partid = []
+    var partid = [];
         spremiumid = [];
         TotalSPre = [];
 
     //Querying Corresponding Part IDs
     const part = await client.query(
-        "SELECT * FROM part_car_info WHERE car_info_id = $1",
+        "SELECT * FROM part WHERE part_code = $1",
         [req.body]
     );
     for (let i = 0; i < part.rowCount; i++) {
@@ -144,10 +154,11 @@ router.route("/subpremium").post(async (req, res) => {
         );
         for (let a = 0; a < pre.rowCount; a++) {
             spremiumid[a] = pre.rows[a].aisin_sub_premium_id;
-    }
-    
+        }
+        
         //Querying Into Premium
         for (let a = 0; a < spremiumid.length; a++) {
+            var count = 2;
             var PreQue = await client.query(
                 "SELECT * FROM aisin_sub_premium WHERE aisin_sub_premium_id = $1",
                 [spremiumid[a]]
@@ -165,7 +176,16 @@ router.route("/subpremium").post(async (req, res) => {
             SPremiumArr.Lengthinch = PreQue.rows[0].length_inch;
             SPremiumArr.Lengthmm = PreQue.rows[0].length_mm;
             SPremiumArr.Heightmm = PreQue.rows[0].height_mm;
-            TotalSPre.push(SPremiumArr);
+            
+            for (let b = 0; b < TotalSPre.length; b++) {
+                if (TotalSPre[b].SPremiumCode === SPremiumArr.SPremiumCode) {
+                    count=0;
+                    break;
+                }
+            }
+            if (count !== 0) {
+                TotalSPre.push(SPremiumArr);
+            }
         }
     }
 
@@ -177,9 +197,10 @@ router.route("/comp").post(async (req, res) => {
     var partid = [];
         manuid = [];
     var competitor = [];
+    
     //Querying Corresponding Part IDs
     const part = await client.query(
-        "SELECT * FROM part_car_info WHERE car_info_id = $1",
+        "SELECT * FROM part WHERE part_code = $1",
         [req.body]
     );
     for (let i = 0; i < part.rowCount; i++) {
@@ -230,6 +251,7 @@ router.route("/partList").post(async (req, res) => {
         "select inf.car_info_id, inf.part_id,pg.part_group_id, pg.part_group_name, p.pnc_id, pnc.part_name, p.part_code, ps.aisin_sub_premium_id, s.aisin_sub_premium_code, pa.aisin_premium_id, a.aisin_premium_code from ((((((( part_group pg join part_sub_group sg on pg.part_group_id = sg.part_group_id ) join part p on sg.part_sub_group_id = p.part_sub_group_id) join (car_information i join part_car_info inf on i.car_info_id = inf.car_info_id) on p.part_id = inf.part_id) join part_aisin_sub_premium ps on p.part_id = ps.part_id) join aisin_sub_premium s on ps.aisin_sub_premium_id = s.aisin_sub_premium_id) join part_aisin_premium pa on p.part_id = pa.part_id) join aisin_premium a on pa.aisin_premium_id = a.aisin_premium_id) join pnc on p.pnc_id = pnc.pnc_id where inf.car_info_id = $1 order by part_group_name",
         [req.body]
     );
+        console.log(req.body)
     // console.log(partinfo);
     //Results can be exported
     var totalPart = [];
