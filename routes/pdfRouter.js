@@ -22,7 +22,19 @@ router.route("/model").post(async (req, res) => {
 
     //Querying Car IDs
     const carinfo = await client.query(
-        "select i.car_info_id, i.aisin_vehicle_code, i.engine_model, i.drivers_position, i.start_of_production, i.end_of_production, o.car_model_name, b.car_brand_name, c.model_code, p.powered_type, f.fuel_type, t.speed, t.transmission_code, t.transmission_type, d.drivetrain, l.displacement_code from ((((((((car_information i left outer join car_model o on i.car_model_id = o.car_model_id) left outer join car_series s on o.car_series_id = s.car_series_id) left outer join car_brand b on s.car_brand_id = b.car_brand_id ) left outer join ms_model_code c on i.model_code_id = c.model_code_id) left outer join ms_powered_type p on i.power_type_id = p.powered_type_id) left outer join ms_fuel_type f on i.fuel_type_id = f.fuel_type_id) left outer join ms_transmission t on i.transmission_type_id = t.transmission_type_id) left outer join ms_drivetrain d on i.drivetrain_id = d.drivetrain_id) left outer join ms_displacement l on i.displacement_id = l.displacement_id where car_info_id = $1",
+        `select i.car_info_id, i.aisin_vehicle_code, i.engine_model, i.drivers_position, i.start_of_production, 
+        i.end_of_production, o.car_model_name, b.car_brand_name, c.model_code, p.powered_type, f.fuel_type, 
+        t.speed, t.transmission_code, t.transmission_type, d.drivetrain, l.displacement_code 
+        from ((((((((car_information i left outer join car_model o on i.car_model_id = o.car_model_id) 
+        left outer join car_series s on o.car_series_id = s.car_series_id) 
+        left outer join car_brand b on s.car_brand_id = b.car_brand_id ) 
+        left outer join ms_model_code c on i.model_code_id = c.model_code_id) 
+        left outer join ms_powered_type p on i.power_type_id = p.powered_type_id) 
+        left outer join ms_fuel_type f on i.fuel_type_id = f.fuel_type_id) 
+        left outer join ms_transmission t on i.transmission_type_id = t.transmission_type_id) 
+        left outer join ms_drivetrain d on i.drivetrain_id = d.drivetrain_id) 
+        left outer join ms_displacement l on i.displacement_id = l.displacement_id 
+        where car_info_id = $1`,
         [req.body]
     );
     //Results can be exported
@@ -199,8 +211,18 @@ router.route("/partList").post(async (req, res) => {
     //Querying Car IDs
     var partGroupId = [];
     const partinfo = await client.query(
-        "select inf.car_info_id, inf.part_id,pg.part_group_id, pg.part_group_name, p.pnc_id, pnc.part_name, p.part_code, ps.aisin_sub_premium_id, s.aisin_sub_premium_code, pa.aisin_premium_id, a.aisin_premium_code from ((((((( part_group pg join part_sub_group sg on pg.part_group_id = sg.part_group_id ) join part p on sg.part_sub_group_id = p.part_sub_group_id) join (car_information i join part_car_info inf on i.car_info_id = inf.car_info_id) on p.part_id = inf.part_id) join part_aisin_sub_premium ps on p.part_id = ps.part_id) join aisin_sub_premium s on ps.aisin_sub_premium_id = s.aisin_sub_premium_id) join part_aisin_premium pa on p.part_id = pa.part_id) join aisin_premium a on pa.aisin_premium_id = a.aisin_premium_id) join pnc on p.pnc_id = pnc.pnc_id where inf.car_info_id = $1 order by part_group_name",
-        [req.body]
+        `select inf.car_info_id, inf.part_id,pg.part_group_id, pg.part_group_name, p.pnc_id, pnc.part_name, 
+        p.part_code, ps.aisin_sub_premium_id, s.aisin_sub_premium_code, pa.aisin_premium_id, a.aisin_premium_code 
+        from ((((((( part_group pg join part_sub_group sg on pg.part_group_id = sg.part_group_id ) 
+        join part p on sg.part_sub_group_id = p.part_sub_group_id) 
+        join (car_information i join part_car_info inf on i.car_info_id = inf.car_info_id) on p.part_id = inf.part_id) 
+        join part_aisin_sub_premium ps on p.part_id = ps.part_id) 
+        join aisin_sub_premium s on ps.aisin_sub_premium_id = s.aisin_sub_premium_id) 
+        join part_aisin_premium pa on p.part_id = pa.part_id) 
+        join aisin_premium a on pa.aisin_premium_id = a.aisin_premium_id) 
+        join pnc on p.pnc_id = pnc.pnc_id 
+        where inf.car_info_id = $1 and sg.part_sub_group_name = $2 order by part_group_name`,
+        [req.body.id, req.body.partSubGroup]
     );
     console.log(partinfo);
     //Results can be exported
@@ -220,6 +242,31 @@ router.route("/partList").post(async (req, res) => {
     console.log(totalPart);
     console.log("Hay", totalPart[1]);
     res.json({ partList: totalPart });
+});
+
+router.route("/subGroup").post(async (req, res) => {
+    //Querying Car IDs
+    const partSubGroup = await client.query(
+        `select distinct part_sub_group_name from part_car_info inf 
+        join (part p 
+        join part_sub_group sg on p.part_sub_group_id = sg.part_sub_group_id) p on inf.part_id = p.part_id 
+        where inf.car_info_id = $1`,
+        [req.body]
+    );
+    console.log(partSubGroup);
+    //Results can be exported
+    var totalPartSubGroup = [];
+    for (let i = 0; i < partSubGroup.rowCount; i++) {
+        var subGroupArr = {};
+        subGroupArr.subGroup = partSubGroup.rows[i].part_sub_group_name;
+        console.log("Here", subGroupArr);
+        totalPartSubGroup[i] = subGroupArr;
+    }
+
+    //Export Result
+    console.log(totalPartSubGroup);
+    console.log("Hay", totalPartSubGroup[1]);
+    res.json({ subGroupList: totalPartSubGroup });
 });
 
 module.exports = router;
