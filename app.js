@@ -54,6 +54,10 @@ app.use (session({
     }
     }))
 app.use('/auth', authRouter) // Auth Router
+app.use('/sch', searchRouter) //Search Router
+app.use('/exp', pdfRouter) //Details and PartList Router
+app.use('/prof', profileRouter) //Profile Router
+app.use('/table', tableRouter) //Table Router
 
 /**
  * Listen on provided port, on all network interfaces.
