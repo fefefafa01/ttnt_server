@@ -13,6 +13,7 @@ var authRouter = require("./routes/authRouter"); //Added Router Here
 var searchRouter = require("./routes/searchRouter"); //Added Searching Router
 var pdfRouter = require("./routes/pdfRouter");
 const logger = require("./routes/logger");
+var tableRouter = require("./routes/tableRouter");
 
 /**
  * Create HTTP server.
@@ -56,6 +57,7 @@ app.use(
 app.use("/auth", authRouter); // Auth Router
 app.use("/sch", searchRouter);
 app.use("/exp", pdfRouter);
+app.use("/table", tableRouter);
 
 /**
  * Listen on provided port, on all network interfaces.
