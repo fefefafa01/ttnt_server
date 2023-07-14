@@ -102,7 +102,12 @@ router.route("/premium").post(async (req, res) => {
         for (let a = 0; a < premiumid.length; a++) {
             var count = 2;
             var PreQue = await client.query(
-                "SELECT * FROM aisin_premium WHERE aisin_premium_id = $1",
+                `SELECT aisin_premium_code, od_mm, od_inch, id_mm,
+                        "major dia_mm" AS major_dia_mm, spline, pcd_mm,
+                        "width od_mm" AS width_od_mm, 
+                        "width id_mm" AS width_id_mm, 
+                        length_inch, length_mm, height_mm 
+                FROM aisin_premium WHERE aisin_premium_id = $1`,
                 [premiumid[a]]
             );
 
@@ -116,6 +121,7 @@ router.route("/premium").post(async (req, res) => {
             PremiumArr.Spline = PreQue.rows[0].spline;
             PremiumArr.PCDmm = PreQue.rows[0].pcd_mm;
             PremiumArr.WidthOD = PreQue.rows[0].width_od_mm;
+            PremiumArr.WidthID = PreQue.rows[0].width_id_mm;
             PremiumArr.Lengthinch = PreQue.rows[0].length_inch;
             PremiumArr.Lengthmm = PreQue.rows[0].length_mm;
             PremiumArr.Heightmm = PreQue.rows[0].height_mm;
@@ -163,7 +169,12 @@ router.route("/subpremium").post(async (req, res) => {
         for (let a = 0; a < spremiumid.length; a++) {
             var count = 2;
             var PreQue = await client.query(
-                "SELECT * FROM aisin_sub_premium WHERE aisin_sub_premium_id = $1",
+                `SELECT aisin_sub_premium_code, od_mm, od_inch, id_mm,
+                        "major dia_mm" AS major_dia_mm, spline, pcd_mm,
+                        "width od_mm" AS width_od_mm, 
+                        "width id_mm" AS width_id_mm, 
+                        length_inch, length_mm, height_mm 
+                FROM aisin_sub_premium WHERE aisin_sub_premium_id = $1`,
                 [spremiumid[a]]
             );
             //Concate into Array
@@ -176,6 +187,7 @@ router.route("/subpremium").post(async (req, res) => {
             SPremiumArr.Spline = PreQue.rows[0].spline;
             SPremiumArr.PCDmm = PreQue.rows[0].pcd_mm;
             SPremiumArr.WidthOD = PreQue.rows[0].width_od_mm;
+            SPremiumArr.WidthID = PreQue.rows[0].width_id_mm;
             SPremiumArr.Lengthinch = PreQue.rows[0].length_inch;
             SPremiumArr.Lengthmm = PreQue.rows[0].length_mm;
             SPremiumArr.Heightmm = PreQue.rows[0].height_mm;
