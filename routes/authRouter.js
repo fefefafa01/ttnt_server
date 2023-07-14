@@ -89,13 +89,9 @@ router.post("/reg", async (req, res) => {
         } else {
             const hashedPass = await bcrypt.hash(req.body.password, 10);
             console.log("Hashed");
-            const latestID = await client.query(
-                "SELECT user_id FROM ms_user"
-            )
             const newUserQuery = await client.query(
-                "INSERT INTO MS_User(user_id, Username, Firstname, Lastname, Password) values ($1, $2, $3, $4, $5) RETURNING Username",
+                "INSERT INTO MS_User(Username, Firstname, Lastname, Password) values ($1, $2, $3, $4) RETURNING Username",
                 [
-                    ((latestID.rowCount)+1),
                     req.body.email,
                     req.body.first_name,
                     req.body.last_name,
