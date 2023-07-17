@@ -10,13 +10,13 @@ const { Server } = require("socket.io");
 const session = require("express-session");
 require("dotenv").config();
 
-    //Routers
+//Routers
 var authRouter = require("./routes/authRouter"); //Added Authentication Router
 var searchRouter = require("./routes/searchRouter"); //Added Searching Router
 const logger = require("./routes/logger"); //Added Logger
 var profileRouter = require("./routes/profileRouter"); //Added Profile Router
 var pdfRouter = require("./routes/pdfRouter"); //Added PDF Parts Detail Router
-var downloadRouter = require("./routes/downloadRouter") //Added Downloading Router
+var downloadRouter = require("./routes/downloadRouter"); //Added Downloading Router
 var tableRouter = require("./routes/tableRouter");
 
 /**
@@ -62,7 +62,7 @@ app.use("/auth", authRouter); // Auth Router
 app.use("/sch", searchRouter); //Search Router
 app.use("/exp", pdfRouter); //Details and PartList Router
 app.use("/prof", profileRouter); //Profile Router
-app.use ("/down", downloadRouter) //Download Router
+app.use("/down", downloadRouter); //Download Router
 app.use("/table", tableRouter); //Table Router
 
 /**
