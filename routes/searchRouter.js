@@ -185,5 +185,18 @@ router.route("/competitor").post(async (req, res) => {
         console.error(error);
     }
 });
+//AAT-15
+router.route("/partgroup").post(async (req, res) => {
+    try {
+        const query =
+            "SELECT DISTINCT part_group_name from part_group WHERE part_group_name IS NOT NULL";
+        const result = await client.query(query);
+
+        const value = result.rows.map((row) => row.part_group_name);
+        res.json({ part_group_name: value });
+    } catch (error) {
+        console.error(error);
+    }
+});
 
 module.exports = router;
