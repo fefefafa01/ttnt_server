@@ -1,5 +1,5 @@
-const {createLogger, transports, format} = require('winston')
-const { formSchema } = require("@whatsapp-clone/common-validate")
+const { createLogger, transports, format } = require("winston");
+const { formSchema } = require("@whatsapp-clone/common-validate");
 
 const dbLogger = (req, res) => {
     //console.log(req)
