@@ -8,6 +8,7 @@ var cors = require("cors");
 const helmet = require("helmet");
 const { Server } = require("socket.io");
 const session = require("express-session");
+var consts = require("./bin/constants/constindex")
 require("dotenv").config();
 
 //Routers
@@ -26,7 +27,7 @@ var tableRouter = require("./routes/tableRouter");
 const server = require("http").createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: consts.frontlocale,
         credentials: "true",
     },
 });
@@ -38,7 +39,7 @@ const io = new Server(server, {
 app.use(helmet());
 app.use(
     cors({
-        origin: "http://localhost:3000",
+        origin: consts.frontlocale,
         credentials: true,
     })
 );
@@ -69,7 +70,7 @@ app.use("/table", tableRouter); //Table Router
  * Listen on provided port, on all network interfaces.
  */
 io.on("connect", (socket) => {});
-server.listen(5000, () => {
+server.listen(consts.port, () => {
     logger.dlogger.log("info", "Server is listening on 5000");
 });
 
