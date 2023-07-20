@@ -6,7 +6,6 @@
     "start": "node ./app.js"
   },
   "dependencies": {
-    "@whatsapp-clone/common-validate": "^1.0.2",
     "bcrypt": "^5.1.0",
     "chance": "^1.1.11",
     "cookie-parser": "~1.4.4",
