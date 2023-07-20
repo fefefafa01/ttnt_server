@@ -14,7 +14,8 @@
     1. Mở file constindex.js trong folder /bin/constants chỉnh sửa lại thông số về nơi đặt client và cổng của server.
     2. Mở file .env trong folder server chỉnh sửa lại cài đặt về database cho phù hợp.
     3. Tại folder server mở CMD/Terminal và nhập lệnh: `"npm install"` hoặc `"yarn install"` để cài dependencies.
-    4. Tại folder server mở CMD/Terminal và nhập lệnh" `"node ./app.js"` hoặc `"yarn start"` để khởi động server.
+    4. Mở file loggers.js, giữ nút *CTRL* nhấn vào `"@whatsapp-clone/common-validate"`. Sau đó đổi `"username"` thành "email" và xóa 2 dòng ".min", ".max". Ở phần `"password"`, đổi `".min([số mong muốn], "Password too short")"` thành độ dài tối thiểu mong muốn.
+    5. Tại folder server mở CMD/Terminal và nhập lệnh" `"node ./app.js"` hoặc `"yarn start"` để khởi động server.
         __Lưu Ý:__ Cổng mặc định của Server là 5000. Nếu cần đổi cổng: Ở thư mục server, mở package.json, ở dòng `"start": "node ./app.js"` thêm `"set PORT=[cổng muốn đổi] && "` ở trước "node". Sau đó vào thư mục client/src/constants và truy cập file constindex.js và chỉnh sửa lại đường dẫn vào server cho phù hợp.
 
 **Client (nằm trong thư mục /client):**
@@ -39,7 +40,8 @@
     1. Open constindex.js in folder /bin/constants to change where the client is put and server's port.
     2. Open .env in server folder to configure database host and user.
     3. In server folder, open CMD/Terminal and type: `"npm install"` or `"yarn install"` to install dependencies.
-    4. In server folder, open CMD/Terminal and type: `"node ./app.js"` or `"yarn start"` to start the server.
+    4. Open loggers.js, hold *CTRL* and click into `"@whatsapp-clone/common-validate"`. Then change `"username"` to "email" and delete 2 lines of ".min", ".max". At `"password"`, change `.min([minimum], "Password too short")` with your least desired length.
+    5. In server folder, open CMD/Terminal and type: `"node ./app.js"` or `"yarn start"` to start the server.
         __Note:__ Server's default port is 5000. In case of changing port: Inside server folder, open package.json, at line `"start": "node ./app.js"` add `"set PORT=[port] && "` before the "node". After that, access client/src/constants and open constindex.js then update the server's link to fit your port changes. 
 
 **Client (nằm trong thư mục /client):**
