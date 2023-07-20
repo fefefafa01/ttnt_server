@@ -283,7 +283,7 @@ router.route("/downpart").post( (req, res) => {
             i=i+1
         }
             //Response
-        const fileName = req.body.fileName+".xls"
+        const fileName = req.body.fileName+".xlsx"
         res.setHeader(
             'Content-Disposition',
             `attachment; filename="${fileName}"`

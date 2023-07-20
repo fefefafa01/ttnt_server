@@ -132,7 +132,7 @@ router.route("/premium").post(async (req, res) => {
                     break;
                 }
             }
-            if (count !== 0) {
+            if (count !== 0 && PremiumArr.PremiumCode!==null) {
                 TotalPre.push(PremiumArr);
             }
         }
@@ -198,7 +198,7 @@ router.route("/subpremium").post(async (req, res) => {
                     break;
                 }
             }
-            if (count !== 0) {
+            if (count !== 0 && SPremiumArr.SPremiumCode!==null) {
                 TotalSPre.push(SPremiumArr);
             }
         }
