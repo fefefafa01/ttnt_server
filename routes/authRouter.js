@@ -7,41 +7,44 @@ const logger = require("./logger.js");
 router
     .route("/login")
     .post(async (req, res) => {
-        console.log(req.body)
-
-        const potentialLogin = await client.query(
-            "SELECT * FROM MS_User WHERE Username= $1",
-            [req.body.email]
-        );
-        //........//
-        if (potentialLogin.rowCount > 0) {
-            //User Found, Checking Password
-            const isSamePass = await bcrypt.compare(
-                req.body.password,
-                potentialLogin.rows[0].password
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+        if (req.body.email!=="" && regex.test(req.body.email)) {
+            const potentialLogin = await client.query(
+                "SELECT * FROM MS_User WHERE Username= $1",
+                [req.body.email]
             );
-            if (isSamePass) {
-                //Login
-                req.session.user = {
-                    email: req.body.email,
-                    id: potentialLogin.rows[0].id,
-                };
-                logger.dlogger.log("info", "Logged In");
-                console.log("Logged In");
-                res.json({ loggedIn: true, email: req.body.email }); 
+
+            if (potentialLogin.rowCount > 0) {
+                //User Found, Checking Password
+                const isSamePass = await bcrypt.compare(
+                    req.body.password,
+                    potentialLogin.rows[0].password
+                );
+                if (isSamePass) {
+                    //Login
+                    req.session.user = {
+                        email: req.body.email,
+                        id: potentialLogin.rows[0].id,
+                    };
+                    logger.dlogger.log("info", "Logged In");
+                    console.log("Logged In");
+                    res.json({ loggedIn: true, email: req.body.email }); 
+                } else {
+                    //Invalid Password
+                    //Logger
+                    res.json({ loggedIn: false, status: "Wrong Password" });
+                    console.log("Wrong Password");
+                    logger.dlogger.log("error", "Invalid Password");
+                }
             } else {
-                //Invalid Password
+                //Invalid Email
                 //Logger
-                res.json({ loggedIn: false, status: "Wrong Password" });
-                console.log("Wrong Password");
-                logger.dlogger.log("error", "Invalid Password");
+                res.json({ loggedIn: false, status: "Wrong Email" });
+                console.log("Wrong Email");
+                logger.dlogger.log("error", "Invalid Email");
             }
         } else {
-            //Invalid Email
-            //Logger
-            res.json({ loggedIn: false, status: "Wrong Email" });
-            console.log("Wrong Email");
-            logger.dlogger.log("error", "Invalid Email");
+            logger.dlogger.log("error", "Invalid Input");
         }
     });
 
