@@ -1,5 +1,4 @@
 const express = require("express");
-const dbLogger = require("./loggers.js");
 const router = express.Router();
 const client = require("./connectdb");
 
@@ -108,7 +107,7 @@ router.route("/result").post(async (req, res) => {
         for (let i = 0; i < req.body.engine_model.length; i++) {
             const engine_model = await client.query(
                 `SELECT info.car_info_id, info.engine_model from car_information info 
-                    WHERE info.info.engine_model =  $1`,
+                    WHERE info.engine_model =  $1`,
                 [req.body.engine_model[i]]
             );
             engineData = engine_model.rows;
@@ -314,7 +313,9 @@ router.route("/result").post(async (req, res) => {
                         WHERE c.car_info_id = $1`,
                 [data[i]]
             );
+
             tableData = table.rows;
+            console.log(tableData);
             for (let i = 0; i < tableData.length; i++) {
                 result.push({
                     car_info_id: tableData[i].car_info_id,
@@ -322,8 +323,13 @@ router.route("/result").post(async (req, res) => {
                     car_maker: tableData[i].manufacturer_name,
                     car_model_name: tableData[i].car_model_name,
                     model_code: tableData[i].model_code,
-                    start_of_production: tableData[i].start_of_production,
-                    end_of_production: tableData[i].end_of_production,
+                    start_of_production: tableData[
+                        i
+                    ].start_of_production.substring(0, 4),
+                    end_of_production: tableData[i].end_of_production.substring(
+                        0,
+                        4
+                    ),
                     drivers_position: tableData[i].drivers_position,
                     engine_code: tableData[i].engine_model,
                     displacement_code: tableData[i].displacement_code,
@@ -344,25 +350,7 @@ router.route("/result").post(async (req, res) => {
 
         console.log(result);
         res.json({
-            no: result.no,
-            car_maker: result.manufacturer_name,
-            car_model_name: result.car_model_name,
-            model_code: result.model_code,
-            start_of_production: result.start_of_production,
-            end_of_production: result.end_of_production,
-            drivers_position: result.drivers_position,
-            engine_code: result.engine_model,
-            displacement_code: result.displacement_code,
-            powered_type: result.powered_type,
-            fuel_type: result.fuel_type,
-            transmission_code: result.transmission_code,
-            transmission_type: result.transmission_type,
-            speed: result.speed,
-            drivetrain: result.drivetrain,
-            oe: result.part_code,
-            part_start_time: result.part_start_time,
-            aisin_premium_code: result.aisin_premium_code,
-            aisin_sub_premium_code: result.aisin_sub_premium_code,
+            table: result,
         });
     } catch (error) {
         console.error(error);

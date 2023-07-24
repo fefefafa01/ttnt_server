@@ -1,5 +1,4 @@
 const express = require("express");
-const dbLogger = require("./loggers.js");
 const router = express.Router();
 const client = require("./connectdb");
 
