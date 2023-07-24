@@ -2,7 +2,7 @@
     "development": {
         "username": "postgres",
         "password": "123456",
-        "database": "Vehicle",
+        "database": "Part",
         "host": "localhost",
         "dialect": "postgres"
     },
