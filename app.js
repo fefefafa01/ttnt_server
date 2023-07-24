@@ -1,7 +1,3 @@
-// var createError = require('http-errors');
-// var path = require('path');
-// var cookieParser = require('cookie-parser');
-// var logger = require('morgan');
 var express = require("express");
 const app = express();
 var cors = require("cors");
@@ -77,10 +73,7 @@ server.listen(consts.port, () => {
 });
 
 // view engine setup
-var indexRouter = require("./routes/index");
 const { signedCookie } = require("cookie-parser");
-app.set("view engine", "jade");
-app.use("/", indexRouter);
 
 // app.use(logger('dev'));
 module.exports = app;
