@@ -39,39 +39,59 @@ router.route("/model").post(async (req, res) => {
             [req.body]
         );
         //Results can be exported
-        vehiclecode = carinfo.rows[0].aisin_vehicle_code; //KUN25
-        startprod = carinfo.rows[0].start_of_production; //2008
-        endprod = carinfo.rows[0].end_of_production; //2011
-        dpos = carinfo.rows[0].drivers_position; //RHD
-        engmod = carinfo.rows[0].engine_model; //2SDFTV
-        model = carinfo.rows[0].car_model_name; //Influx
-        maker = carinfo.rows[0].car_brand_name; //Toyota
-        displace = carinfo.rows[0].displacement_code;
-        power = carinfo.rows[0].powered_type;
-        fuel = carinfo.rows[0].fuel_type;
-        transcode = carinfo.rows[0].transmission_code;
-        trans = carinfo.rows[0].transmission_type;
-        speed = carinfo.rows[0].speed;
-        if (speed === null || speed === undefined) speed = "";
-        drivetrain = carinfo.rows[0].drivetrain;
+        if (carinfo.rowCount!==0) {
+            vehiclecode = carinfo.rows[0].aisin_vehicle_code; //KUN25
+            startprod = carinfo.rows[0].start_of_production; //2008
+            endprod = carinfo.rows[0].end_of_production; //2011
+            dpos = carinfo.rows[0].drivers_position; //RHD
+            engmod = carinfo.rows[0].engine_model; //2SDFTV
+            model = carinfo.rows[0].car_model_name; //Influx
+            maker = carinfo.rows[0].car_brand_name; //Toyota
+            displace = carinfo.rows[0].displacement_code;
+            power = carinfo.rows[0].powered_type;
+            fuel = carinfo.rows[0].fuel_type;
+            transcode = carinfo.rows[0].transmission_code;
+            trans = carinfo.rows[0].transmission_type;
+            speed = carinfo.rows[0].speed;
+            if (speed === null || speed === undefined) speed = "";
+            drivetrain = carinfo.rows[0].drivetrain;
 
-        //Export Result
-        res.json({
-            maker: maker,
-            model: model,
-            vcode: vehiclecode,
-            start: startprod,
-            end: endprod,
-            dripos: dpos,
-            engcode: engmod,
-            disp: displace,
-            powered: power,
-            fuel: fuel,
-            transc: transcode,
-            spd: speed,
-            trans: trans,
-            dtrain: drivetrain,
-        });
+            //Export Result
+            res.json({
+                maker: maker,
+                model: model,
+                vcode: vehiclecode,
+                start: startprod,
+                end: endprod,
+                dripos: dpos,
+                engcode: engmod,
+                disp: displace,
+                powered: power,
+                fuel: fuel,
+                transc: transcode,
+                spd: speed,
+                trans: trans,
+                dtrain: drivetrain,
+            });
+        } else {
+            console.log("No Car Model Found")
+            res.json({
+                maker: "",
+                model: "",
+                vcode: "",
+                start: "",
+                end: "",
+                dripos: "",
+                engcode: "",
+                disp: "",
+                powered: "",
+                fuel: "",
+                transc: "",
+                spd: "",
+                trans: "",
+                dtrain: "",
+            });
+        }
     } else {
         logger.dlogger.log("error", "Null Car_ID Request")
     }
