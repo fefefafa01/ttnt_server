@@ -11,23 +11,27 @@ module.exports = {
         const userIds = users[0].map((user) => user.user_id);
 
         const manufacturerData = [];
-        const numPart = 50;
+        const manufacturerName = [
+            "Toyota",
+            "Honda",
+            "Ford",
+            "Mistubishi",
+            "Hyundai",
+        ];
+        const manufacturerType = ["Car, Part", "Truck, Part"];
+        const numPart = 5;
         for (let i = 0; i < numPart; i++) {
-            manufacturerData.push({
-                manufacturer_name: chanceObj.pickone([
-                    "Toyota",
-                    "Honda",
-                    "Ford",
-                    "Mistubishi",
-                    "Hyundai",
-                ]),
-                type: chanceObj.pickone(["Car, Part", "Truck, Part"]),
-                is_active: chanceObj.bool(),
-                created_date: new Date(),
-                created_by: chanceObj.pickone(userIds),
-                updated_date: new Date(),
-                updated_by: chanceObj.pickone(userIds),
-            });
+            for (let j = 0; j < 2; j++) {
+                manufacturerData.push({
+                    manufacturer_name: manufacturerName[i],
+                    type: manufacturerType[j],
+                    is_active: chanceObj.bool(),
+                    created_date: new Date(),
+                    created_by: chanceObj.pickone(userIds),
+                    updated_date: new Date(),
+                    updated_by: chanceObj.pickone(userIds),
+                });
+            }
         }
 
         await queryInterface.bulkInsert("manufacturer", manufacturerData, {});

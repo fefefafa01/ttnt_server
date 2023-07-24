@@ -24,15 +24,10 @@ module.exports = {
 
         const data = [];
         const numPart = 50;
-        const uniqueAisinSubPrem = chanceObj.unique(
-            chanceObj.pickone,
-            numPart,
-            aisinSubPremIds
-        );
         for (let i = 0; i < numPart; i++) {
             data.push({
                 part_id: chanceObj.pickone(partIds),
-                aisin_sub_premium_id: uniqueAisinSubPrem[i],
+                aisin_sub_premium_id: chanceObj.pickone(aisinSubPremIds),
                 is_active: chanceObj.bool(),
                 created_date: new Date(),
                 created_by: chanceObj.pickone(userIds),

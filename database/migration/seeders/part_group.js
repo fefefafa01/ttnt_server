@@ -13,16 +13,17 @@ module.exports = {
         const userIds = users[0].map((user) => user.user_id);
 
         const partGroupData = [];
-        const numPart = 50;
+        const partGroup = [
+            "Powertrain/Chassis",
+            "Engine/Fuel",
+            "Electrical",
+            "Engine/Exhaust",
+        ];
+        const numPart = 4;
         userIds.forEach((userId) => {
             for (let i = 0; i < numPart; i++) {
                 partGroupData.push({
-                    part_group_name: chanceObj.pickone([
-                        "Powertrain/Chassis",
-                        "Engine/Fuel",
-                        "Electrical",
-                        "Engine/Exhaust",
-                    ]),
+                    part_group_name: partGroup[i],
                     is_active: chanceObj.bool(),
                     created_date: new Date(),
                     created_by: userId,

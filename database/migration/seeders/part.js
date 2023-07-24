@@ -18,9 +18,10 @@ module.exports = {
         );
 
         const partMappings = await queryInterface.sequelize.query(
-            "SELECT part_name_mappping_id FROM part_name_mapping"
+            "SELECT part_name_mappping_id, part_code FROM part_name_mapping",
+            { type: Sequelize.QueryTypes.SELECT }
         );
-        const partMappingIds = partMappings[0].map(
+        const partMappingIds = partMappings.map(
             (partMapping) => partMapping.part_name_mappping_id
         );
 
@@ -29,33 +30,35 @@ module.exports = {
         );
         const pncIds = pncs[0].map((pnc) => pnc.pnc_id);
 
-        const { startTime, endTime } = (() => {
-            const startYear = chanceObj.integer({ min: 2000, max: 2010 });
-            const startMonth = chanceObj.integer({ min: 1, max: 12 });
-            const endYear = chanceObj.integer({ min: startYear, max: 2023 });
-            const endMonth = chanceObj.integer({ min: 1, max: 12 });
-            const formatTime = (year, month) =>
-                `${String(year)}${String(month).padStart(2, "0")}`;
-            return {
-                startTime: formatTime(startYear, startMonth),
-                endTime: formatTime(endYear, endMonth),
-            };
-        })();
-
         const data = [];
         const numPart = 50;
         for (let i = 0; i < numPart; i++) {
+            const { startTime, endTime } = (() => {
+                const startYear = chanceObj.integer({ min: 2000, max: 2010 });
+                const startMonth = chanceObj.integer({ min: 1, max: 12 });
+                const endYear = chanceObj.integer({
+                    min: startYear,
+                    max: 2023,
+                });
+                const endMonth = chanceObj.integer({ min: 1, max: 12 });
+                const formatTime = (year, month) =>
+                    `${String(year)}${String(month).padStart(2, "0")}`;
+                return {
+                    startTime: formatTime(startYear, startMonth),
+                    endTime: formatTime(endYear, endMonth),
+                };
+            })();
+            const partNameMappingId = chanceObj.pickone(partMappingIds);
+            const partNameMapping = partMappings.find(
+                (partMapping) =>
+                    partMapping.part_name_mappping_id === partNameMappingId
+            );
+            const randomPartCode = partNameMapping.part_code;
             data.push({
                 part_sub_group_id: chanceObj.pickone(partSubGroupIds),
-                part_name_mappping_id: chanceObj.pickone(partMappingIds),
+                part_name_mappping_id: partNameMappingId,
                 pnc_id: chanceObj.pickone(pncIds),
-                part_code: `${chanceObj.string({
-                    length: 5,
-                    pool: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-                })}-${chanceObj.string({
-                    length: 5,
-                    pool: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-                })}`,
+                part_code: randomPartCode,
                 part_remark: chanceObj.pickone([
                     null,
                     "Test",
