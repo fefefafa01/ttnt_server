@@ -5,72 +5,76 @@ const logger = require("./logger.js");
 
 router.route("/model").post(async (req, res) => {
     //Variables
-    var vehiclecode,
-        startprod,
-        endprod,
-        dpos,
-        engmod,
-        maker,
-        model,
-        displace,
-        power,
-        fuel,
-        transcode,
-        speed,
-        trans,
-        drivetrain;
+    if (typeof(req.body)!=="object") {
+        var vehiclecode,
+            startprod,
+            endprod,
+            dpos,
+            engmod,
+            maker,
+            model,
+            displace,
+            power,
+            fuel,
+            transcode,
+            speed,
+            trans,
+            drivetrain;
 
-    //Querying Car IDs
-    const carinfo = await client.query(
-        `select i.car_info_id, i.aisin_vehicle_code, i.engine_model, i.drivers_position, i.start_of_production, 
-        i.end_of_production, o.car_model_name, b.car_brand_name, c.model_code, p.powered_type, f.fuel_type, 
-        t.speed, t.transmission_code, t.transmission_type, d.drivetrain, l.displacement_code 
-        from ((((((((car_information i left outer join car_model o on i.car_model_id = o.car_model_id) 
-        left outer join car_series s on o.car_series_id = s.car_series_id) 
-        left outer join car_brand b on s.car_brand_id = b.car_brand_id ) 
-        left outer join ms_model_code c on i.model_code_id = c.model_code_id) 
-        left outer join ms_powered_type p on i.power_type_id = p.powered_type_id) 
-        left outer join ms_fuel_type f on i.fuel_type_id = f.fuel_type_id) 
-        left outer join ms_transmission t on i.transmission_type_id = t.transmission_type_id) 
-        left outer join ms_drivetrain d on i.drivetrain_id = d.drivetrain_id) 
-        left outer join ms_displacement l on i.displacement_id = l.displacement_id 
-        where car_info_id = $1`,
-        [req.body]
-    );
-    //Results can be exported
-    vehiclecode = carinfo.rows[0].aisin_vehicle_code; //KUN25
-    startprod = carinfo.rows[0].start_of_production; //2008
-    endprod = carinfo.rows[0].end_of_production; //2011
-    dpos = carinfo.rows[0].drivers_position; //RHD
-    engmod = carinfo.rows[0].engine_model; //2SDFTV
-    model = carinfo.rows[0].car_model_name; //Influx
-    maker = carinfo.rows[0].car_brand_name; //Toyota
-    displace = carinfo.rows[0].displacement_code;
-    power = carinfo.rows[0].powered_type;
-    fuel = carinfo.rows[0].fuel_type;
-    transcode = carinfo.rows[0].transmission_code;
-    trans = carinfo.rows[0].transmission_type;
-    speed = carinfo.rows[0].speed;
-    if (speed === null || speed === undefined) speed = "";
-    drivetrain = carinfo.rows[0].drivetrain;
+        //Querying Car IDs
+        const carinfo = await client.query(
+            `select i.car_info_id, i.aisin_vehicle_code, i.engine_model, i.drivers_position, i.start_of_production, 
+            i.end_of_production, o.car_model_name, b.car_brand_name, c.model_code, p.powered_type, f.fuel_type, 
+            t.speed, t.transmission_code, t.transmission_type, d.drivetrain, l.displacement_code 
+            from ((((((((car_information i left outer join car_model o on i.car_model_id = o.car_model_id) 
+            left outer join car_series s on o.car_series_id = s.car_series_id) 
+            left outer join car_brand b on s.car_brand_id = b.car_brand_id ) 
+            left outer join ms_model_code c on i.model_code_id = c.model_code_id) 
+            left outer join ms_powered_type p on i.power_type_id = p.powered_type_id) 
+            left outer join ms_fuel_type f on i.fuel_type_id = f.fuel_type_id) 
+            left outer join ms_transmission t on i.transmission_type_id = t.transmission_type_id) 
+            left outer join ms_drivetrain d on i.drivetrain_id = d.drivetrain_id) 
+            left outer join ms_displacement l on i.displacement_id = l.displacement_id 
+            where car_info_id = $1`,
+            [req.body]
+        );
+        //Results can be exported
+        vehiclecode = carinfo.rows[0].aisin_vehicle_code; //KUN25
+        startprod = carinfo.rows[0].start_of_production; //2008
+        endprod = carinfo.rows[0].end_of_production; //2011
+        dpos = carinfo.rows[0].drivers_position; //RHD
+        engmod = carinfo.rows[0].engine_model; //2SDFTV
+        model = carinfo.rows[0].car_model_name; //Influx
+        maker = carinfo.rows[0].car_brand_name; //Toyota
+        displace = carinfo.rows[0].displacement_code;
+        power = carinfo.rows[0].powered_type;
+        fuel = carinfo.rows[0].fuel_type;
+        transcode = carinfo.rows[0].transmission_code;
+        trans = carinfo.rows[0].transmission_type;
+        speed = carinfo.rows[0].speed;
+        if (speed === null || speed === undefined) speed = "";
+        drivetrain = carinfo.rows[0].drivetrain;
 
-    //Export Result
-    res.json({
-        maker: maker,
-        model: model,
-        vcode: vehiclecode,
-        start: startprod,
-        end: endprod,
-        dripos: dpos,
-        engcode: engmod,
-        disp: displace,
-        powered: power,
-        fuel: fuel,
-        transc: transcode,
-        spd: speed,
-        trans: trans,
-        dtrain: drivetrain,
-    });
+        //Export Result
+        res.json({
+            maker: maker,
+            model: model,
+            vcode: vehiclecode,
+            start: startprod,
+            end: endprod,
+            dripos: dpos,
+            engcode: engmod,
+            disp: displace,
+            powered: power,
+            fuel: fuel,
+            transc: transcode,
+            spd: speed,
+            trans: trans,
+            dtrain: drivetrain,
+        });
+    } else {
+        logger.dlogger.log("error", "Null Car_ID Request")
+    }
 });
 
 router.route("/premium").post(async (req, res) => {
