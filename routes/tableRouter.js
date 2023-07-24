@@ -270,30 +270,29 @@ router.route("/result").post(async (req, res) => {
         if (aisinData.length != 0) count++;
         if (competitorData.length != 0) count++;
 
-        if (mergeData == 0) {
+        if (mergeData === 0) {
             mergeData.push("There is no car matched your search");
-        }
+            res.json({ status: "There is no car matched your search" });
+        } else {
+            console.log(mergeData);
 
-        console.log(mergeData);
-
-        var data = [];
-        var freq = [];
-        for (var num of mergeData) {
-            freq[num] = (freq[num] || 0) + 1;
-        }
-        for (var key in freq) {
-            if (freq[key] === count) {
-                data.push(key);
+            var data = [];
+            var freq = [];
+            for (var num of mergeData) {
+                freq[num] = (freq[num] || 0) + 1;
             }
-        }
-        console.log(data);
+            for (var key in freq) {
+                if (freq[key] === count) {
+                    data.push(key);
+                }
+            }
+            console.log(data);
 
-        let no = 0;
-        var tableData = [];
-        var result = [];
-        for (let i = 0; i < data.length; i++) {
-            const table = await client.query(
-                `SELECT c.car_info_id, m.model_code, c.start_of_production, c.end_of_production, c.drivers_position, c.engine_model, t.transmission_code, t.transmission_type, car.car_model_name, f.fuel_type, p.powered_type, d.displacement_code, manu.manufacturer_name, part.part_start_time, drive.drivetrain, pre.aisin_premium_code, sub.aisin_sub_premium_code, t.speed, part.part_code from ((((((((((((((((car_information c
+            var tableData = [];
+            var result = [];
+            for (let i = 0; i < data.length; i++) {
+                const table = await client.query(
+                    `SELECT c.car_info_id, m.model_code, c.start_of_production, c.end_of_production, c.drivers_position, c.engine_model, t.transmission_code, t.transmission_type, car.car_model_name, f.fuel_type, p.powered_type, d.displacement_code, manu.manufacturer_name, part.part_start_time, drive.drivetrain, pre.aisin_premium_code, sub.aisin_sub_premium_code, t.speed, part.part_code from ((((((((((((((((car_information c
                         join ms_model_code m on c.model_code_id = m.model_code_id)
                         join ms_transmission t on c.transmission_type_id = t.transmission_type_id)
                         join car_model car on c.car_model_id = car.car_model_id)
@@ -311,47 +310,50 @@ router.route("/result").post(async (req, res) => {
                         join part_aisin_premium ppre on part.part_id = ppre.part_id)
                         join aisin_premium pre on ppre.aisin_premium_id = pre.aisin_premium_id)
                         WHERE c.car_info_id = $1`,
-                [data[i]]
-            );
+                    [data[i]]
+                );
 
-            tableData = table.rows;
-            console.log(tableData);
-            for (let i = 0; i < tableData.length; i++) {
-                result.push({
-                    car_info_id: tableData[i].car_info_id,
-                    no: no + 1,
-                    car_maker: tableData[i].manufacturer_name,
-                    car_model_name: tableData[i].car_model_name,
-                    model_code: tableData[i].model_code,
-                    start_of_production: tableData[
-                        i
-                    ].start_of_production.substring(0, 4),
-                    end_of_production: tableData[i].end_of_production.substring(
-                        0,
-                        4
-                    ),
-                    drivers_position: tableData[i].drivers_position,
-                    engine_code: tableData[i].engine_model,
-                    displacement_code: tableData[i].displacement_code,
-                    powered_type: tableData[i].powered_type,
-                    fuel_type: tableData[i].fuel_type,
-                    transmission_code: tableData[i].transmission_code,
-                    transmission_type: tableData[i].transmission_type,
-                    speed: tableData[i].speed,
-                    drivetrain: tableData[i].drivetrain,
-                    oe: tableData[i].part_code,
-                    part_start_time: tableData[i].part_start_time,
-                    aisin_premium_code: tableData[i].aisin_premium_code,
-                    aisin_sub_premium_code: tableData[i].aisin_sub_premium_code,
+                tableData = table.rows;
+                console.log(tableData);
+            }
+            if (tableData == "") {
+                console.log("There is no car matched your search");
+                res.json({ status: "There is no car matched your search" });
+            } else {
+                for (let i = 0; i < tableData.length; i++) {
+                    result.push({
+                        car_info_id: tableData[i].car_info_id,
+                        car_maker: tableData[i].manufacturer_name,
+                        car_model_name: tableData[i].car_model_name,
+                        model_code: tableData[i].model_code,
+                        start_of_production: tableData[
+                            i
+                        ].start_of_production.substring(0, 4),
+                        end_of_production: tableData[
+                            i
+                        ].end_of_production.substring(0, 4),
+                        drivers_position: tableData[i].drivers_position,
+                        engine_code: tableData[i].engine_model,
+                        displacement_code: tableData[i].displacement_code,
+                        powered_type: tableData[i].powered_type,
+                        fuel_type: tableData[i].fuel_type,
+                        transmission_code: tableData[i].transmission_code,
+                        transmission_type: tableData[i].transmission_type,
+                        speed: tableData[i].speed,
+                        drivetrain: tableData[i].drivetrain,
+                        oe: tableData[i].part_code,
+                        part_start_time: tableData[i].part_start_time,
+                        aisin_premium_code: tableData[i].aisin_premium_code,
+                        aisin_sub_premium_code:
+                            tableData[i].aisin_sub_premium_code,
+                    });
+                }
+                console.log(result);
+                res.json({
+                    table: result,
                 });
-                no++;
             }
         }
-
-        console.log(result);
-        res.json({
-            table: result,
-        });
     } catch (error) {
         console.error(error);
     }
