@@ -289,6 +289,7 @@ router.route("/result").post(async (req, res) => {
             console.log(data);
 
             var tableData = [];
+
             var result = [];
             for (let i = 0; i < data.length; i++) {
                 const table = await client.query(
@@ -313,42 +314,42 @@ router.route("/result").post(async (req, res) => {
                     [data[i]]
                 );
 
-                tableData = table.rows;
-                console.log(tableData);
+                tableData[i] = table.rows;
             }
+            console.log(tableData.length);
+
             if (tableData == "") {
                 console.log("There is no car matched your search");
                 res.json({ status: "There is no car matched your search" });
             } else {
                 for (let i = 0; i < tableData.length; i++) {
                     result.push({
-                        car_info_id: tableData[i].car_info_id,
-                        car_maker: tableData[i].manufacturer_name,
-                        car_model_name: tableData[i].car_model_name,
-                        model_code: tableData[i].model_code,
-                        start_of_production: tableData[
+                        car_info_id: tableData[i][i].car_info_id,
+                        car_maker: tableData[i][i].manufacturer_name,
+                        car_model_name: tableData[i][i].car_model_name,
+                        model_code: tableData[i][i].model_code,
+                        start_of_production: tableData[i][
                             i
                         ].start_of_production.substring(0, 4),
-                        end_of_production: tableData[
+                        end_of_production: tableData[i][
                             i
                         ].end_of_production.substring(0, 4),
-                        drivers_position: tableData[i].drivers_position,
-                        engine_code: tableData[i].engine_model,
-                        displacement_code: tableData[i].displacement_code,
-                        powered_type: tableData[i].powered_type,
-                        fuel_type: tableData[i].fuel_type,
-                        transmission_code: tableData[i].transmission_code,
-                        transmission_type: tableData[i].transmission_type,
-                        speed: tableData[i].speed,
-                        drivetrain: tableData[i].drivetrain,
-                        oe: tableData[i].part_code,
-                        part_start_time: tableData[i].part_start_time,
-                        aisin_premium_code: tableData[i].aisin_premium_code,
+                        drivers_position: tableData[i][i].drivers_position,
+                        engine_code: tableData[i][i].engine_model,
+                        displacement_code: tableData[i][i].displacement_code,
+                        powered_type: tableData[i][i].powered_type,
+                        fuel_type: tableData[i][i].fuel_type,
+                        transmission_code: tableData[i][i].transmission_code,
+                        transmission_type: tableData[i][i].transmission_type,
+                        speed: tableData[i][i].speed,
+                        drivetrain: tableData[i][i].drivetrain,
+                        oe: tableData[i][i].part_code,
+                        part_start_time: tableData[i][i].part_start_time,
+                        aisin_premium_code: tableData[i][i].aisin_premium_code,
                         aisin_sub_premium_code:
-                            tableData[i].aisin_sub_premium_code,
+                            tableData[i][i].aisin_sub_premium_code,
                     });
                 }
-                console.log(result);
                 res.json({
                     table: result,
                 });
