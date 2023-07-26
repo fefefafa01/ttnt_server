@@ -38,6 +38,7 @@ router.route("/result").post(async (req, res) => {
                 mergeData.push(countryData[i].car_info_id);
             }
         }
+
         for (let i = 0; i < req.body.manufacturer_name.length; i++) {
             const manufacturer = await client.query(
                 `SELECT info.car_info_id, manu.manufacturer_name from ((((manufacturer manu 
@@ -313,45 +314,48 @@ router.route("/result").post(async (req, res) => {
                         WHERE c.car_info_id = $1`,
                     [data[i]]
                 );
-
-                tableData[i] = table.rows;
+                tableData = table.rows;
+                for (let i = 0; i < tableData.length; i++) {
+                    result.push(tableData[i]);
+                }
             }
-            console.log(tableData.length);
 
-            if (tableData == "") {
+            console.log(result);
+            var resultTable = [];
+            if (result == "") {
                 console.log("There is no car matched your search");
                 res.json({ status: "There is no car matched your search" });
             } else {
-                for (let i = 0; i < tableData.length; i++) {
-                    result.push({
-                        car_info_id: tableData[i][i].car_info_id,
-                        car_maker: tableData[i][i].manufacturer_name,
-                        car_model_name: tableData[i][i].car_model_name,
-                        model_code: tableData[i][i].model_code,
-                        start_of_production: tableData[i][
+                for (let i = 0; i < result.length; i++) {
+                    resultTable.push({
+                        car_info_id: result[i].car_info_id,
+                        car_maker: result[i].manufacturer_name,
+                        car_model_name: result[i].car_model_name,
+                        model_code: result[i].model_code,
+                        start_of_production: result[
                             i
                         ].start_of_production.substring(0, 4),
-                        end_of_production: tableData[i][
+                        end_of_production: result[
                             i
                         ].end_of_production.substring(0, 4),
-                        drivers_position: tableData[i][i].drivers_position,
-                        engine_code: tableData[i][i].engine_model,
-                        displacement_code: tableData[i][i].displacement_code,
-                        powered_type: tableData[i][i].powered_type,
-                        fuel_type: tableData[i][i].fuel_type,
-                        transmission_code: tableData[i][i].transmission_code,
-                        transmission_type: tableData[i][i].transmission_type,
-                        speed: tableData[i][i].speed,
-                        drivetrain: tableData[i][i].drivetrain,
-                        oe: tableData[i][i].part_code,
-                        part_start_time: tableData[i][i].part_start_time,
-                        aisin_premium_code: tableData[i][i].aisin_premium_code,
+                        drivers_position: result[i].drivers_position,
+                        engine_code: result[i].engine_model,
+                        displacement_code: result[i].displacement_code,
+                        powered_type: result[i].powered_type,
+                        fuel_type: result[i].fuel_type,
+                        transmission_code: result[i].transmission_code,
+                        transmission_type: result[i].transmission_type,
+                        speed: result[i].speed,
+                        drivetrain: result[i].drivetrain,
+                        oe: result[i].part_code,
+                        part_start_time: result[i].part_start_time,
+                        aisin_premium_code: result[i].aisin_premium_code,
                         aisin_sub_premium_code:
-                            tableData[i][i].aisin_sub_premium_code,
+                            result[i].aisin_sub_premium_code,
                     });
                 }
                 res.json({
-                    table: result,
+                    table: resultTable,
                 });
             }
         }
