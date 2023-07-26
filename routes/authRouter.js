@@ -8,7 +8,7 @@ router
     .route("/login")
     .post(async (req, res) => {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-        if (req.body.email!=="" && regex.test(req.body.email)) {
+        if (req.body.email!=="" && regex.test(req.body.email) && req.body.password!=="") {
             const potentialLogin = await client.query(
                 "SELECT * FROM MS_User WHERE Username= $1",
                 [req.body.email]
@@ -21,6 +21,15 @@ router
                     potentialLogin.rows[0].password
                 );
                 if (isSamePass) {
+                    //Check firsttime
+                    const firsttime = await client.query(
+                        "SELECT firsttime_login FROM ms_user WHERE username = $1", [req.body.email]
+                    )
+                    if (firsttime.rows[0].firsttime_login===null || firsttime.rows[0].firsttime_login===false) {
+                        const updater = await client.query (
+                            "UPDATE ms_user SET firsttime_login=true WHERE Username = $1", [req.body.email]
+                        )
+                    }
                     //Login
                     req.session.user = {
                         email: req.body.email,
@@ -45,6 +54,7 @@ router
             }
         } else {
             logger.dlogger.log("error", "Invalid Input");
+            res.status(422).send("Unprocessable Entity")
         }
     });
 
@@ -72,21 +82,23 @@ router.post("/reg", async (req, res) => {
             const latestID = await client.query(
                 "SELECT user_id FROM ms_user ORDER BY user_id ASC"
             )
-            for (let i = 0; i < latestID.rowCount; i++) {
-                if (i+1 < latestID.rowCount) {
-                    if ((latestID.rows[i].user_id+1)!==latestID.rows[i+1].user_id) {
-                        console.log(latestID.rows[i].user_id)
-                        console.log(latestID.rows[i+1].user_id)
+            if (latestID.rows[0].user_id!==1) {
+                checkid = 1
+            } else {
+                for (let i = 0; i < latestID.rowCount; i++) {
+                    if (i+1 < latestID.rowCount) {
+                        if ((latestID.rows[i].user_id+1)!==latestID.rows[i+1].user_id) {
+                            checkid = latestID.rows[i].user_id+1;
+                            break;
+                        }
+                    } else {
                         checkid = latestID.rows[i].user_id+1;
-                        break;
                     }
-                } else {
-                    checkid = latestID.rows[i].user_id+1;
                 }
             }
-            console.log(checkid)
             const newUserQuery = await client.query(
-                "INSERT INTO MS_User(user_id, Username, Firstname, Lastname, Password, role_id, created_by) values ($1, $2, $3, $4, $5, $6, $7) RETURNING Username",
+                `INSERT INTO MS_User(user_id, Username, Firstname, Lastname, Password, role_id, created_by, is_active, updated_by, firsttime_login) 
+                    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING Username`,
                 [
                     checkid,
                     req.body.email,
@@ -95,9 +107,12 @@ router.post("/reg", async (req, res) => {
                     hashedPass,
                     3,
                     checkid,
+                    true,
+                    checkid,
+                    false
                 ]
             );
-            console.log("Inserted");
+            console.log("Inserted. Chosen ID: ", checkid);
             req.session.user = {
                 email: req.body.email,
                 id: newUserQuery.rows[0].id,
@@ -116,6 +131,7 @@ router.post("/reg", async (req, res) => {
         }
     } else {
         logger.dlogger.log("error", "Invalid Input")
+        res.status(422).send("Unprocessable Entity")
     }
 });
 
@@ -134,28 +150,33 @@ router.post("/resetpwd", async (req, res) => {
             [req.body.email]
         );
         if (existingUser.rowCount > 0) {
-            if (req.body.password !== req.body.confpassword) {
-                res.json({ loggedIn: false, status: "Password Unmatched" });
-                logger.dlogger.log("info", "Password Unmatch");
-                console.log("Password Unmatch");
-            } else {
-                const hashedPass = await bcrypt.hash(req.body.password, 10);
-                const newPasswordQuery = await client.query(
-                    "UPDATE ms_user SET Password = $1 WHERE Username = $2",
-                    [hashedPass, req.body.email]
-                );
-                req.session.user = {
-                    email: req.body.email,
-                };
-                console.log(req.body.email);
-                res.json({
-                    loggedIn: false,
-                    email: req.body.email,
-                    status: "Changed Pass",
-                }); //Replacable
-                console.log("Changed Pass");
-                logger.dlogger.log("info", "Reset Password successfully");
-            }
+            //Current Time
+            var date_ob = new Date();
+            var day = ("0" + date_ob.getDate()).slice(-2);
+            var month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
+            var year = date_ob.getFullYear();
+            var hours = date_ob.getHours();
+            var minutes = date_ob.getMinutes();
+            var seconds = date_ob.getSeconds();
+            var milisecs = date_ob.getMilliseconds();
+            var dateTime = year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds + "." + milisecs;
+            //Update Database
+            const hashedPass = await bcrypt.hash(req.body.password, 10);
+            const newPasswordQuery = await client.query(
+                "UPDATE ms_user SET Password = $1, updated_by = user_id, updated_date = $2 WHERE Username = $3",
+                [hashedPass, dateTime, req.body.email]
+            );
+            req.session.user = {
+                email: req.body.email,
+            };
+            console.log(req.body.email);
+            res.json({
+                loggedIn: false,
+                email: req.body.email,
+                status: "Changed Pass",
+            }); //Replacable
+            console.log("Changed Pass");
+            logger.dlogger.log("info", "Reset Password successfully");
         } else {
             res.json({ loggedIn: false, status: "Email Unavailable" });
             console.log("Email Unavailable");
@@ -163,6 +184,7 @@ router.post("/resetpwd", async (req, res) => {
         }
     } else {
         logger.dlogger.log("error", "Invalid Input")
+        res.status(422).send("Unprocessable Entity")
     }
 });
 module.exports = router;
