@@ -6,17 +6,20 @@ const logger = require("./logger.js");
 router.route("/maker").post(async (req, res) => {
     //Querying Car IDs
     const countMaker = await client.query(
-        `select b.car_brand_name, count(car_brand_name), sum(count(car_brand_name)) over (order by car_brand_name)
-        from ((((((((car_information i left outer join car_model o on i.car_model_id = o.car_model_id) 
-                left outer join car_series s on o.car_series_id = s.car_series_id) 
-                left outer join car_brand b on s.car_brand_id = b.car_brand_id ) 
-                left outer join ms_model_code c on i.model_code_id = c.model_code_id) 
-                left outer join ms_powered_type p on i.power_type_id = p.powered_type_id) 
-                left outer join ms_fuel_type f on i.fuel_type_id = f.fuel_type_id) 
-                left outer join ms_transmission t on i.transmission_type_id = t.transmission_type_id) 
-                left outer join ms_drivetrain d on i.drivetrain_id = d.drivetrain_id) 
-                left outer join ms_displacement l on i.displacement_id = l.displacement_id 
-                group by car_brand_name`
+        // `select b.car_brand_name, count(car_brand_name), sum(count(car_brand_name)) over (order by car_brand_name)
+        // from ((((((((car_information i left outer join car_model o on i.car_model_id = o.car_model_id)
+        //         left outer join car_series s on o.car_series_id = s.car_series_id)
+        //         left outer join car_brand b on s.car_brand_id = b.car_brand_id )
+        //         left outer join ms_model_code c on i.model_code_id = c.model_code_id)
+        //         left outer join ms_powered_type p on i.power_type_id = p.powered_type_id)
+        //         left outer join ms_fuel_type f on i.fuel_type_id = f.fuel_type_id)
+        //         left outer join ms_transmission t on i.transmission_type_id = t.transmission_type_id)
+        //         left outer join ms_drivetrain d on i.drivetrain_id = d.drivetrain_id)
+        //         left outer join ms_displacement l on i.displacement_id = l.displacement_id
+        //         group by car_brand_name`
+        `select car_brand_name, count(car_brand_name), sum(count(car_brand_name)) over (order by car_brand_name)
+        from part_summary_info
+                group by car_brand_name;`
     );
     //Results can be exported
     var totalCountMaker = [];
@@ -86,7 +89,6 @@ router.route("/overallTable").post(async (req, res) => {
         }
         overallValMT[i] = overallCheck;
     }
-    console.log(overallValMT);
 
     //for MTAT
     const partMTAT = await client.query(
@@ -120,8 +122,8 @@ router.route("/overallTable").post(async (req, res) => {
             from part_summary_info
             where (transmission_type = 'MT' or transmission_type = 'AT' or transmission_type = 'MT&AT') 
             and car_brand_name = $1 and original_part_name = $2
-            group by car_brand_name, original_part_name, transmission_type
-            order by car_brand_name, original_part_name, transmission_type;`,
+            group by car_brand_name, original_part_name
+            order by car_brand_name, original_part_name;`,
                 [totalMakerMTAT[i], totalPartMTAT[j]]
             );
             var overall = {};
@@ -140,6 +142,8 @@ router.route("/overallTable").post(async (req, res) => {
         }
         overallValMTAT[i] = overallCheck;
     }
+
+    console.log(overallValMTAT);
 
     res.json({
         carName: totalMakerMTAT,
