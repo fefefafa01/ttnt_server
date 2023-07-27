@@ -2,8 +2,6 @@ const express = require("express");
 const router = express.Router();
 const client = require("./connectdb");
 const excel = require("exceljs");
-let os = require("os");
-let FileSaver = require("file-saver")
 
 
 router.route("/partlist").post(async (req, res) => {
