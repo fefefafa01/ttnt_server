@@ -294,7 +294,7 @@ router.route("/result").post(async (req, res) => {
             var result = [];
             for (let i = 0; i < data.length; i++) {
                 const table = await client.query(
-                    `SELECT c.car_info_id, m.model_code, c.start_of_production, c.end_of_production, c.drivers_position, c.engine_model, t.transmission_code, t.transmission_type, car.car_model_name, f.fuel_type, p.powered_type, d.displacement_code, manu.manufacturer_name, part.part_start_time, drive.drivetrain, pre.aisin_premium_code, sub.aisin_sub_premium_code, t.speed, part.part_code from ((((((((((((((((car_information c
+                    `SELECT c.car_info_id, map.aisin_part_name, m.model_code, c.start_of_production, c.end_of_production, c.drivers_position, c.engine_model, t.transmission_code, t.transmission_type, car.car_model_name, f.fuel_type, p.powered_type, d.displacement_code, manu.manufacturer_name, part.part_start_time, drive.drivetrain, pre.aisin_premium_code, sub.aisin_sub_premium_code, t.speed, part.part_code from ((((((((((((((((car_information c
                         join ms_model_code m on c.model_code_id = m.model_code_id)
                         join ms_transmission t on c.transmission_type_id = t.transmission_type_id)
                         join car_model car on c.car_model_id = car.car_model_id)
@@ -352,6 +352,7 @@ router.route("/result").post(async (req, res) => {
                         aisin_premium_code: result[i].aisin_premium_code,
                         aisin_sub_premium_code:
                             result[i].aisin_sub_premium_code,
+                        aisin_part_name: result[i].aisin_part_name,
                     });
                 }
                 res.json({
