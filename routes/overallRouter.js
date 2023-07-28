@@ -4,6 +4,18 @@ const client = require("./connectdb");
 const logger = require("./logger.js");
 const excel = require("exceljs");
 
+router.route("/partname").post(async (req, res) => {
+    try {
+        const query =
+            "SELECT DISTINCT original_part_name from part_summary_info";
+        const result = await client.query(query);
+
+        const value = result.rows.map((row) => row.original_part_name);
+        res.json({ aisin_part_name: value });
+    } catch (error) {
+        console.error(error);
+    }
+});
 
 router.route("/maker").post(async (req, res) => {
     //Querying Car IDs
@@ -145,7 +157,7 @@ router.route("/overallTable").post(async (req, res) => {
         overallValMTAT[i] = overallCheck;
     }
 
-    console.log(overallValMTAT);
+    // console.log(overallValMTAT);
 
     res.json({
         carName: totalMakerMTAT,
@@ -765,6 +777,7 @@ router.route("/downoverall").post(async (req, res) => {
         }
     }
     //Part Name Criteria
+    console.log(allPN.rows)
     if (allPN.rowCount === req.body.part_name.length || (req.body.part_name.length===0 || req.body.part_name==="")) {
         ecPN = "All Part Name"
     } else if (allPN.rowCount > req.body.part_name.length) {
