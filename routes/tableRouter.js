@@ -294,24 +294,25 @@ router.route("/result").post(async (req, res) => {
             var result = [];
             for (let i = 0; i < data.length; i++) {
                 const table = await client.query(
-                    `SELECT c.car_info_id, map.aisin_part_name, m.model_code, c.start_of_production, c.end_of_production, c.drivers_position, c.engine_model, t.transmission_code, t.transmission_type, car.car_model_name, f.fuel_type, p.powered_type, d.displacement_code, manu.manufacturer_name, part.part_start_time, drive.drivetrain, pre.aisin_premium_code, sub.aisin_sub_premium_code, t.speed, part.part_code from ((((((((((((((((car_information c
-                        join ms_model_code m on c.model_code_id = m.model_code_id)
-                        join ms_transmission t on c.transmission_type_id = t.transmission_type_id)
-                        join car_model car on c.car_model_id = car.car_model_id)
-                        join ms_fuel_type f on c.fuel_type_id = f.fuel_type_id)
-                        join ms_powered_type p on c.power_type_id = p.powered_type_id)
-                        join ms_displacement d on c.displacement_id = d.displacement_id)
-                        join car_series series on car.car_series_id = series.car_series_id)
-                        join car_brand brand on series.car_brand_id = brand.car_brand_id)
-                        join manufacturer manu on brand.manufacturer_id = manu.manufacturer_id)
-                        join part_name_mapping map on manu.manufacturer_name = map.manufacturer_name)
-                        join part on map.part_name_mappping_id = part.part_name_mappping_id)
-                        join ms_drivetrain drive on c.drivetrain_id = drive.drivetrain_id)
-                        join part_aisin_sub_premium psub on part.part_id = psub.part_id)
-                        join aisin_sub_premium sub on psub.aisin_sub_premium_id = sub.aisin_sub_premium_id)
-                        join part_aisin_premium ppre on part.part_id = ppre.part_id)
-                        join aisin_premium pre on ppre.aisin_premium_id = pre.aisin_premium_id)
-                        WHERE c.car_info_id = $1`,
+                    `SELECT car.car_info_id, car.start_of_production, car.end_of_production, car.engine_model, car.drivers_position, manu.manufacturer_name, model.car_model_name, power.powered_type, fuel.fuel_type, dis.displacement_code, trans.transmission_code, trans.transmission_type, trans.speed, drive.drivetrain, code.model_code, p.part_code, pmap.aisin_part_name, p.part_start_time, pre.aisin_premium_code, spre.aisin_sub_premium_code from (((((((((((((((((car_information car
+                        JOIN car_model model ON car.car_model_id = model.car_model_id)
+                        JOIN car_series series ON model.car_series_id = series.car_series_id)
+                        JOIN car_brand brand ON series.car_brand_id = brand.car_brand_id)
+                        JOIN manufacturer manu ON brand.manufacturer_id = manu.manufacturer_id)
+                        JOIN part_competiter_info com ON manu.manufacturer_id = com.manufacturer_id)
+                        JOIN part p ON com.part_id = p.part_id)
+                        JOIN part_name_mapping pmap ON p.part_name_mappping_id = pmap.part_name_mappping_id)
+                        FULL OUTER JOIN part_aisin_premium ppre ON p.part_id = ppre.part_id)
+                        FULL OUTER JOIN aisin_premium pre ON ppre.aisin_premium_id = pre.aisin_premium_id)
+                        FULL OUTER JOIN part_aisin_sub_premium pspre ON p.part_id = pspre.part_id)
+                        FULL OUTER JOIN aisin_sub_premium spre ON pspre.aisin_sub_premium_id = spre.aisin_sub_premium_id)
+                        JOIN ms_powered_type power ON car.power_type_id = power.powered_type_id)
+                        JOIN ms_fuel_type fuel ON car.fuel_type_id = fuel.fuel_type_id)
+                        JOIN ms_displacement dis ON car.displacement_id = dis.displacement_id)
+                        JOIN ms_transmission trans ON car.transmission_type_id = trans.transmission_type_id)
+                        JOIN ms_drivetrain drive ON car.drivetrain_id = drive.drivetrain_id)
+                        JOIN ms_model_code code ON car.model_code_id = code.model_code_id)
+                        WHERE car.car_info_id = $1`,
                     [data[i]]
                 );
                 tableData = table.rows;
@@ -328,18 +329,18 @@ router.route("/result").post(async (req, res) => {
             } else {
                 for (let i = 0; i < result.length; i++) {
                     resultTable.push({
-                        car_info_id: result[i].car_info_id,
-                        car_maker: result[i].manufacturer_name,
-                        car_model_name: result[i].car_model_name,
+                        car_info_id: result[i].car_info_id, //
+                        car_maker: result[i].manufacturer_name, //
+                        car_model_name: result[i].car_model_name, //
                         model_code: result[i].model_code,
                         start_of_production: result[
                             i
-                        ].start_of_production.substring(0, 4),
+                        ].start_of_production.substring(0, 4), //
                         end_of_production: result[
                             i
-                        ].end_of_production.substring(0, 4),
-                        drivers_position: result[i].drivers_position,
-                        engine_code: result[i].engine_model,
+                        ].end_of_production.substring(0, 4), //
+                        drivers_position: result[i].drivers_position, //
+                        engine_code: result[i].engine_model, //
                         displacement_code: result[i].displacement_code,
                         powered_type: result[i].powered_type,
                         fuel_type: result[i].fuel_type,
