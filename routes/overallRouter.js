@@ -633,7 +633,7 @@ router.route("/downoverall").post(async (req, res) => {
                 }
             }
         }
-        console.log(countrydata.length, makerdata.length, transdata.length, pgroupdata.length, pnamedata.length)
+        console.log("Searched Values:", countrydata.length, makerdata.length, transdata.length, pgroupdata.length, pnamedata.length)
         //Check Data
         var temperal = [], temp = []
         //Country to Car-Maker
@@ -698,7 +698,7 @@ router.route("/downoverall").post(async (req, res) => {
                 }
             }
         }
-        console.log(temperal.length, temp.length)
+        console.log("Fitting Criteria Values:", temperal.length, temp.length)
         //Purging if same value
         if (temp.length>1) {
             for (let i = 0; i < temp.length-1; i++) {
@@ -716,6 +716,100 @@ router.route("/downoverall").post(async (req, res) => {
             }
         }
         data = temp
+    }
+    //Export Criteria Check If Select All:
+    const allCountry = await client.query(
+        `select distinct country_name
+        from part_summary_info 
+        group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
+        order by country_name`
+    )
+    const allMaker = await client.query(
+        `select distinct car_brand_name
+        from part_summary_info 
+        group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
+        order by car_brand_name`
+    )
+    const allTrans = await client.query(
+        `select distinct transmission_type
+        from part_summary_info 
+        group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, transmission_type
+        order by transmission_type`
+    )
+    const allPG = await client.query (
+        `select distinct part_group_name
+        from part_summary_info 
+        group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
+        order by part_group_name`
+    )
+    const allPN = await client.query (
+        `select distinct original_part_name
+        from part_summary_info 
+        group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
+        order by original_part_name`
+    )
+    console.log("Distinct Criteria Values:", allCountry.rowCount, allMaker.rowCount, allTrans.rowCount, allPG.rowCount, allPN.rowCount)
+    
+    var ecCountry = "", ecMaker = "", ecTrans = "", ecPG = "", ecPN = ""
+    //Country Criteria
+    if (allCountry.rowCount === req.body.country_name.length || (req.body.country_name.length===0 || req.body.country_name==="")) {
+        ecCountry = "All Country"
+    } else if (allCountry.rowCount > req.body.country_name.length) {
+        for (let i = 0; i < req.body.country_name.length; i++) {
+            if (i===0) {
+                ecCountry = req.body.country_name[i]
+            } else {
+                ecCountry = ecCountry + ", " + req.body.country_name[i]
+            }
+        }
+    }
+    //Maker Criteria
+    if (allMaker.rowCount === req.body.manufacturer_name.length || (req.body.manufacturer_name.length===0 || req.body.manufacturer_name==="")) {
+        ecMaker = "All Brand"
+    } else if (allMaker.rowCount > req.body.manufacturer_name.length) {
+        for (let i = 0; i < req.body.manufacturer_name.length; i++) {
+            if (i===0) {
+                ecMaker = req.body.manufacturer_name[i]
+            } else {
+                ecMaker = ecMaker + ", " + req.body.manufacturer_name[i]
+            }
+        }
+    }
+    //Transmission Criteria
+    if (allTrans.rowCount === req.body.transmission_type.length || (req.body.transmission_type.length===0 || req.body.tranmission_type==="")) {
+        ecTrans = "All Transmission Type"
+    } else if (allTrans.rowCount > req.body.transmission_type.length) {
+        for (let i = 0; i < req.body.transmission_type.length; i++) {
+            if (i===0) {
+                ecTrans = req.body.transmission_type[i]
+            } else {
+                ecTrans = ecTrans + ", " + req.body.transmission_type[i]
+            }
+        }
+    }
+    //Part Group Criteria
+    if (allPG.rowCount === req.body.part_group.length || (req.body.part_group.length===0 || req.body.part_group==="")) {
+        ecPG = "All Part Group"
+    } else if (allPG.rowCount > req.body.part_group.length) {
+        for (let i = 0; i < req.body.part_group.length; i++) {
+            if (i===0) {
+                ecPG = req.body.part_group[i]
+            } else {
+                ecPG = ecPG + ", " + req.body.part_group[i]
+            }
+        }
+    }
+    //Part Name Criteria
+    if (allPN.rowCount === req.body.part_name.length || (req.body.part_name.length===0 || req.body.part_name==="")) {
+        ecPN = "All Part Name"
+    } else if (allPN.rowCount > req.body.part_name.length) {
+        for (let i = 0; i < req.body.part_name.length; i++) {
+            if (i===0) {
+                ecPN = req.body.part_name[i]
+            } else {
+                ecPN = ecPN + ", " + req.body.part_name[i]
+            }
+        }
     }
     //Downloading
     const curr = new Date();
@@ -737,20 +831,77 @@ router.route("/downoverall").post(async (req, res) => {
     wb.xlsx.readFile("bin/constants/ReportTemplate.xlsx")
     .then(function() {
         var ws = wb.getWorksheet(1)
-        // Object.keys(data).forEach(count+1)
-        // console.log(count)
+        if (req.body.start_year!=="" && req.body.end_year!=="") {
+            var appendA1 =  "Export Criteria" + 
+                            "\r\n- Country = " + ecCountry +
+                            "\r\n- Car Maker = " + ecMaker +
+                            "\r\n- Transmission Type = " + ecTrans +
+                            "\r\n- Part Group = " + ecPG +
+                            "\r\n- Part Name = " + ecPN +
+                            "\r\n- From " + req.body.start_year + " To " + req.body.end_year 
+        } else if (req.body.start_year==="" && req.body.end_year !== "") {
+            var appendA1 =  "Export Criteria" + 
+                            "\r\n- Country = " + ecCountry +
+                            "\r\n- Car Maker = " + ecMaker +
+                            "\r\n- Transmission Type = " + ecTrans +
+                            "\r\n- Part Group = " + ecPG +
+                            "\r\n- Part Name = " + ecPN +
+                            "\r\n- To " + req.body.end_year
+        } else if (req.body.start_year!=="" && req.body.end_year==="") {
+            var appendA1 =  "Export Criteria" + 
+                            "\r\n- Country = " + ecCountry +
+                            "\r\n- Car Maker = " + ecMaker +
+                            "\r\n- Transmission Type = " + ecTrans +
+                            "\r\n- Part Group = " + ecPG +
+                            "\r\n- Part Name = " + ecPN +
+                            "\r\n- From " + req.body.start_year
+        } else if (req.body.start_year==="" && req.body.end_year==="") {
+            var appendA1 =  "Export Criteria" + 
+                            "\r\n- Country = " + ecCountry +
+                            "\r\n- Car Maker = " + ecMaker +
+                            "\r\n- Transmission Type = " + ecTrans +
+                            "\r\n- Part Group = " + ecPG +
+                            "\r\n- Part Name = " + ecPN
+        }
+        
+        if (req.body.start_cover!==req.body.end_cover) {
+            appendA1 = appendA1 + "\r\n- Coverage Range " + req.body.start_cover + " To " + req.body.end_cover
+        } else if (req.body.start_cover===req.body.end_cover) {
+            appendA1 = appendA1 + "\r\n- Coverage Range " + req.body.start_cover
+        }
+
+        ws.mergeCells('A1:F1')
+        var row = ws.getRow(1)
+        row.height = 120
+        const A1cell = ws.getCell("A1")
+        A1cell.value = appendA1
+        const bold = appendA1.indexOf("Export Criteria")
+        if (bold >= 0) {
+            const textRuns = [
+                { text: appendA1.substring(0, bold), font: { bold: false } },
+                { text: 'Export Criteria', font: { bold: true } },
+                { text: appendA1.substring(bold + 'Export Criteria'.length), font: { bold: false } }
+            ];
+            A1cell.value = { richText: textRuns };
+        }
+        ws.getCell("A1").border = {
+            top: {style:'thin', color: {argb:'00000000'}},
+            left: {style:'thin', color: {argb:'00000000'}},
+            bottom: {style:'thin', color: {argb:'00000000'}},
+            right: {style:'thin', color: {argb:'00000000'}}
+        }
         for (let i = 0; i < data.length; i++) {
-            var row = ws.getRow(i+2)
-            row.height = 60
+            row = ws.getRow(i+3)
+            row.height = 20
             row.getCell(1).value = data[i].car_maker
             row.getCell(2).value = data[i].part_group
             row.getCell(3).value = data[i].part_name
             row.getCell(4).value = parseInt(data[i].year)
-            row.getCell(5).value = parseInt(data[i].month)
+            row.getCell(5).value = data[i].month
             row.getCell(6).value = parseInt(data[i].coverage)
             row.commit()
             for (let j = 0; j < CellName.length; j++) {
-                let Cell = CellName[j]+(i+2)
+                let Cell = CellName[j]+(i+3)
                 ws.getCell(Cell).border = {
                     top: {style:'thin', color: {argb:'00000000'}},
                     left: {style:'thin', color: {argb:'00000000'}},
