@@ -156,41 +156,6 @@ router.route("/overallTable").post(async (req, res) => {
     });
 });
 
-router.route("/result").post(async (req, res) => {
-    //Querying Car IDs
-
-    const exportData = await client.query(
-        `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, 
-        ROUND(SUM(coverage::numeric) / SUM(total) * 100, 2) AS "coverage_rate"
-        from part_summary_info 
-        where country_name = $1 AND car_brand_name = $2 AND part_group_name = $3 AND original_part_name = $4
-        group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
-        order by country_name, car_brand_name, part_group_name, original_part_name`,
-        [
-            req.body.country_name[0],
-            req.body.manufacturer_name[0],
-            req.body.part_name[0],
-            req.body.part_group[0],
-        ]
-    );
-    //Results can be exported
-    var totalData = [];
-    for (let i = 0; i < exportData.rowCount; i++) {
-        var data = {};
-        data.country_name = exportData.rows[i].country_name;
-        data.manufacturer_name = exportData.rows[i].manufacturer_name;
-        data.part_name = exportData.rows[i].part_name;
-        data.part_group = exportData.rows[i].part_group;
-        data.coverage_rate = exportData.rows[i].coverage_rate;
-
-        totalData[i] = data;
-    }
-    console.log("totalData", totalData);
-    res.json("AAAA")
-    //Export Result
-    //res.json({ MakerName: totalCountMaker });
-});
-
 router.route("/downoverall").post(async (req, res) => {
     var data = []
     if ((req.body.country_name.length===0 || req.body.country_name==="") &&
