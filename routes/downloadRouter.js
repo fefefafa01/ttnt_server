@@ -393,7 +393,7 @@ router.route("/downresultpart").post( (req, res) => {
     var wb = new excel.Workbook()
     wb.xlsx.readFile("bin/constants/ResultPartsTemplate.xlsx")
     .then(function() {
-        var ws = wb.getWorksheet(1)
+        var ws = wb.getWorksheet(1) 
         // Object.keys(data).forEach(count+1)
         // console.log(count)
         let i = 0
