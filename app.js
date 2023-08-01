@@ -8,10 +8,6 @@ const session = require("express-session");
 var consts = require("./bin/constants/constindex")
 require("dotenv").config();
 
-//Configure API Max
-app.use(bodyParser.json({ limit: '100mb'}));
-app.use(bodyParser.urlencoded({ limit: '100mb', extended: true}));
-
 //Routers
 var authRouter = require("./routes/authRouter"); //Added Authentication Router
 var searchRouter = require("./routes/searchRouter"); //Added Searching Router

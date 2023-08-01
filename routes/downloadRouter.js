@@ -388,7 +388,6 @@ router.route("/downvehicle").post( (req, res) => {
 
 router.route("/vehicledown").post(async (req, res) => {
     var aisincode = []
-
     for (let i = 0; i < req.body.length; i++) {
         const aicode = await client.query(
             `SELECT aisin_vehicle_code FROM public.car_information
