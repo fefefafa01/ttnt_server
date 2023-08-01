@@ -16,6 +16,7 @@ var pdfRouter = require("./routes/pdfRouter"); //Added PDF Parts Detail Router
 var downloadRouter = require("./routes/downloadRouter"); //Added Downloading Router
 var tableRouter = require("./routes/tableRouter");
 var overallRouter = require("./routes/overallRouter");
+var periodRouter = require("./routes/periodRouter");
 
 /**
  * Create HTTP server.
@@ -63,6 +64,7 @@ app.use("/prof", profileRouter); //Profile Router
 app.use("/down", downloadRouter); //Download Router
 app.use("/table", tableRouter); //Table Router
 app.use("/overall", overallRouter); //Overall Router
+app.use("/period", periodRouter); //Period Router
 
 /**
  * Listen on provided port, on all network interfaces.
