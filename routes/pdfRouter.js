@@ -311,7 +311,7 @@ router.route("/partList").post(async (req, res) => {
         var partArr = {};
         partArr.partGroup = partinfo.rows[i].part_group_name;
         partArr.partName = partinfo.rows[i].part_name;
-        partArr.OE = partinfo.rows[i].part_code+" ("+partinfo.rows[i].part_start_time.slice(0,2)+"-"+partinfo.rows[i].part_end_time.slice(0,2)+")";
+        partArr.OE = partinfo.rows[i].part_code+" ("+partinfo.rows[i].part_start_time.slice(2,4)+"-"+partinfo.rows[i].part_end_time.slice(2,4)+")";
         partArr.aisinPrem = partinfo.rows[i].aisin_premium_code;
         partArr.aisinSubPrem = partinfo.rows[i].aisin_sub_premium_code;
         // console.log("Here", partArr);
