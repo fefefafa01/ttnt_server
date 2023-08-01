@@ -346,7 +346,7 @@ router.route("/downvehicle").post( (req, res) => {
         let i = 0
         while(Object.values(data)[i]) {
             var row = ws.getRow(i+2)
-            row.height = 80
+            row.height = 56.25
             row.getCell(1).value = Object.values(data)[i].CarMaker
             row.getCell(2).value = Object.values(data)[i].ModelName
             row.getCell(3).value = Object.values(data)[i].ModelCode
