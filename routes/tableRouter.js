@@ -61,6 +61,9 @@ router.route("/result").post(async (req, res) => {
                     aisin_part_name: result[i].aisin_part_name,
                 });
             }
+            res.json({
+                table: resultTable,
+            });
         } else {
             var countryData = [];
             var manuData = [];
@@ -419,12 +422,12 @@ router.route("/result").post(async (req, res) => {
                             aisin_part_name: result[i].aisin_part_name,
                         });
                     }
+                    res.json({
+                        table: resultTable,
+                    });
                 }
             }
         }
-        res.json({
-            table: resultTable,
-        });
     } catch (error) {
         console.error(error);
     }

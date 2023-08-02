@@ -334,7 +334,7 @@ router.route("/vehicledown").post(async (req, res) => {
 })
 
 router.route("/downvehicle").post( (req, res) => {
-    const CellName = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"]
+    const CellName = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
     const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
     var data = req.body.fileData;
     var wb = new excel.Workbook()
@@ -347,21 +347,22 @@ router.route("/downvehicle").post( (req, res) => {
         while(Object.values(data)[i]) {
             var row = ws.getRow(i+2)
             row.height = 56.25
-            row.getCell(1).value = Object.values(data)[i].CarMaker
-            row.getCell(2).value = Object.values(data)[i].ModelName
-            row.getCell(3).value = Object.values(data)[i].ModelCode
-            row.getCell(4).value = parseInt(Object.values(data)[i].From)
-            row.getCell(5).value = parseInt(Object.values(data)[i].To)
-            row.getCell(6).value = Object.values(data)[i].DriversPosition
-            row.getCell(7).value = Object.values(data)[i].EngineCode
-            row.getCell(8).value = Object.values(data)[i].Displacement
-            row.getCell(9).value = Object.values(data)[i].PoweredType
-            row.getCell(10).value = Object.values(data)[i].FuelType
-            row.getCell(11).value = Object.values(data)[i].TransmissionCode
-            row.getCell(12).value = Object.values(data)[i].TransmissionType
-            row.getCell(13).value = Object.values(data)[i].Speed
-            row.getCell(14).value = Object.values(data)[i].DriveTrain
-            row.getCell(15).value = Object.values(data)[i].VehicleCode
+            row.getCell(1).value = parseInt(i+1)
+            row.getCell(2).value = Object.values(data)[i].CarMaker
+            row.getCell(3).value = Object.values(data)[i].ModelName
+            row.getCell(4).value = Object.values(data)[i].ModelCode
+            row.getCell(5).value = parseInt(Object.values(data)[i].From)
+            row.getCell(6).value = parseInt(Object.values(data)[i].To)
+            row.getCell(7).value = Object.values(data)[i].DriversPosition
+            row.getCell(8).value = Object.values(data)[i].EngineCode
+            row.getCell(9).value = Object.values(data)[i].Displacement
+            row.getCell(10).value = Object.values(data)[i].PoweredType
+            row.getCell(11).value = Object.values(data)[i].FuelType
+            row.getCell(12).value = Object.values(data)[i].TransmissionCode
+            row.getCell(13).value = Object.values(data)[i].TransmissionType
+            row.getCell(14).value = Object.values(data)[i].Speed
+            row.getCell(15).value = Object.values(data)[i].DriveTrain
+            row.getCell(16).value = Object.values(data)[i].VehicleCode
             row.commit()
             for (let j = 0; j < CellName.length; j++) {
                 let Cell = CellName[j]+(i+2)
@@ -400,7 +401,7 @@ router.route("/vehicledown").post(async (req, res) => {
 })
 
 router.route("/downresultlist").post( (req, res) => {
-    const CellName = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U"]
+    const CellName = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V"]
     const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
     var data = req.body.fileData;
     var wb = new excel.Workbook()
@@ -413,27 +414,28 @@ router.route("/downresultlist").post( (req, res) => {
         while(Object.values(data)[i]) {
             var row = ws.getRow(i+3)
             row.height = 26.25
-            row.getCell(1).value = Object.values(data)[i].CarMaker
-            row.getCell(2).value = Object.values(data)[i].ModelName
-            row.getCell(3).value = Object.values(data)[i].ModelCode
-            row.getCell(4).value = parseInt(Object.values(data)[i].From)
-            row.getCell(5).value = parseInt(Object.values(data)[i].To)
-            row.getCell(6).value = Object.values(data)[i].DriversPosition
-            row.getCell(7).value = Object.values(data)[i].EngineCode
-            row.getCell(8).value = Object.values(data)[i].Displacement
-            row.getCell(9).value = Object.values(data)[i].PoweredType
-            row.getCell(10).value = Object.values(data)[i].FuelType
-            row.getCell(11).value = Object.values(data)[i].TransmissionCode
-            row.getCell(12).value = Object.values(data)[i].TransmissionType
-            row.getCell(13).value = Object.values(data)[i].Speed
-            row.getCell(14).value = Object.values(data)[i].DriveTrain
-            row.getCell(15).value = Object.values(data)[i].OEL
-            row.getCell(16).value = Object.values(data)[i].AisinPremiumL
-            row.getCell(17).value = Object.values(data)[i].AisinSubPremiumL
-            row.getCell(18).value = Object.values(data)[i].OER
-            row.getCell(19).value = Object.values(data)[i].AisinPremiumR
-            row.getCell(20).value = Object.values(data)[i].AisinSubPremiumR
-            row.getCell(21).value = Object.values(data)[i].VehicleCode
+            row.getCell(1).value = parseInt(i+1)
+            row.getCell(2).value = Object.values(data)[i].CarMaker
+            row.getCell(3).value = Object.values(data)[i].ModelName
+            row.getCell(4).value = Object.values(data)[i].ModelCode
+            row.getCell(5).value = parseInt(Object.values(data)[i].From)
+            row.getCell(6).value = parseInt(Object.values(data)[i].To)
+            row.getCell(7).value = Object.values(data)[i].DriversPosition
+            row.getCell(8).value = Object.values(data)[i].EngineCode
+            row.getCell(9).value = Object.values(data)[i].Displacement
+            row.getCell(10).value = Object.values(data)[i].PoweredType
+            row.getCell(11).value = Object.values(data)[i].FuelType
+            row.getCell(12).value = Object.values(data)[i].TransmissionCode
+            row.getCell(13).value = Object.values(data)[i].TransmissionType
+            row.getCell(14).value = Object.values(data)[i].Speed
+            row.getCell(15).value = Object.values(data)[i].DriveTrain
+            row.getCell(16).value = Object.values(data)[i].OEL
+            row.getCell(17).value = Object.values(data)[i].AisinPremiumL
+            row.getCell(18).value = Object.values(data)[i].AisinSubPremiumL
+            row.getCell(19).value = Object.values(data)[i].OER
+            row.getCell(20).value = Object.values(data)[i].AisinPremiumR
+            row.getCell(21).value = Object.values(data)[i].AisinSubPremiumR
+            row.getCell(22).value = Object.values(data)[i].VehicleCode
             row.commit()
             for (let j = 0; j < CellName.length; j++) {
                 let Cell = CellName[j]+(i+3)
