@@ -334,7 +334,7 @@ router.route("/vehicledown").post(async (req, res) => {
 })
 
 router.route("/downvehicle").post( (req, res) => {
-    const CellName = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"]
+    const CellName = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
     const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
     var data = req.body.fileData;
     var wb = new excel.Workbook()
@@ -346,25 +346,99 @@ router.route("/downvehicle").post( (req, res) => {
         let i = 0
         while(Object.values(data)[i]) {
             var row = ws.getRow(i+2)
-            row.height = 80
-            row.getCell(1).value = Object.values(data)[i].CarMaker
-            row.getCell(2).value = Object.values(data)[i].ModelName
-            row.getCell(3).value = Object.values(data)[i].ModelCode
-            row.getCell(4).value = parseInt(Object.values(data)[i].From)
-            row.getCell(5).value = parseInt(Object.values(data)[i].To)
-            row.getCell(6).value = Object.values(data)[i].DriversPosition
-            row.getCell(7).value = Object.values(data)[i].EngineCode
-            row.getCell(8).value = Object.values(data)[i].Displacement
-            row.getCell(9).value = Object.values(data)[i].PoweredType
-            row.getCell(10).value = Object.values(data)[i].FuelType
-            row.getCell(11).value = Object.values(data)[i].TransmissionCode
-            row.getCell(12).value = Object.values(data)[i].TransmissionType
-            row.getCell(13).value = Object.values(data)[i].Speed
-            row.getCell(14).value = Object.values(data)[i].DriveTrain
-            row.getCell(15).value = Object.values(data)[i].VehicleCode
+            row.height = 56.25
+            row.getCell(1).value = parseInt(i+1)
+            row.getCell(2).value = Object.values(data)[i].CarMaker
+            row.getCell(3).value = Object.values(data)[i].ModelName
+            row.getCell(4).value = Object.values(data)[i].ModelCode
+            row.getCell(5).value = parseInt(Object.values(data)[i].From)
+            row.getCell(6).value = parseInt(Object.values(data)[i].To)
+            row.getCell(7).value = Object.values(data)[i].DriversPosition
+            row.getCell(8).value = Object.values(data)[i].EngineCode
+            row.getCell(9).value = Object.values(data)[i].Displacement
+            row.getCell(10).value = Object.values(data)[i].PoweredType
+            row.getCell(11).value = Object.values(data)[i].FuelType
+            row.getCell(12).value = Object.values(data)[i].TransmissionCode
+            row.getCell(13).value = Object.values(data)[i].TransmissionType
+            row.getCell(14).value = Object.values(data)[i].Speed
+            row.getCell(15).value = Object.values(data)[i].DriveTrain
+            row.getCell(16).value = Object.values(data)[i].VehicleCode
             row.commit()
             for (let j = 0; j < CellName.length; j++) {
                 let Cell = CellName[j]+(i+2)
+                ws.getCell(Cell).border = {
+                    top: {style:'thin', color: {argb:'00000000'}},
+                    left: {style:'thin', color: {argb:'00000000'}},
+                    bottom: {style:'thin', color: {argb:'00000000'}},
+                    right: {style:'thin', color: {argb:'00000000'}}
+                }
+            }
+            i=i+1
+        }
+            //Response
+        const fileName = req.body.fileName+".xlsx"
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename="${fileName}"`
+        )
+        wb.xlsx.write(res).then(() => {
+            res.end()
+        })
+    })
+})
+
+router.route("/vehicledown").post(async (req, res) => {
+    var aisincode = []
+    for (let i = 0; i < req.body.length; i++) {
+        const aicode = await client.query(
+            `SELECT aisin_vehicle_code FROM public.car_information
+            WHERE car_info_id = $1
+            ORDER BY car_info_id ASC`, [req.body[i].car_info_id]
+        )
+        aisincode.push(aicode.rows[0].aisin_vehicle_code)
+    }
+    res.json(aisincode)
+})
+
+router.route("/downresultlist").post( (req, res) => {
+    const CellName = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V"]
+    const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+    var data = req.body.fileData;
+    var wb = new excel.Workbook()
+    wb.xlsx.readFile("bin/constants/ResultListTemplate.xlsx")
+    .then(function() {
+        var ws = wb.getWorksheet(1)
+        // Object.keys(data).forEach(count+1)
+        // console.log(count)
+        let i = 0
+        while(Object.values(data)[i]) {
+            var row = ws.getRow(i+3)
+            row.height = 26.25
+            row.getCell(1).value = parseInt(i+1)
+            row.getCell(2).value = Object.values(data)[i].CarMaker
+            row.getCell(3).value = Object.values(data)[i].ModelName
+            row.getCell(4).value = Object.values(data)[i].ModelCode
+            row.getCell(5).value = parseInt(Object.values(data)[i].From)
+            row.getCell(6).value = parseInt(Object.values(data)[i].To)
+            row.getCell(7).value = Object.values(data)[i].DriversPosition
+            row.getCell(8).value = Object.values(data)[i].EngineCode
+            row.getCell(9).value = Object.values(data)[i].Displacement
+            row.getCell(10).value = Object.values(data)[i].PoweredType
+            row.getCell(11).value = Object.values(data)[i].FuelType
+            row.getCell(12).value = Object.values(data)[i].TransmissionCode
+            row.getCell(13).value = Object.values(data)[i].TransmissionType
+            row.getCell(14).value = Object.values(data)[i].Speed
+            row.getCell(15).value = Object.values(data)[i].DriveTrain
+            row.getCell(16).value = Object.values(data)[i].OEL
+            row.getCell(17).value = Object.values(data)[i].AisinPremiumL
+            row.getCell(18).value = Object.values(data)[i].AisinSubPremiumL
+            row.getCell(19).value = Object.values(data)[i].OER
+            row.getCell(20).value = Object.values(data)[i].AisinPremiumR
+            row.getCell(21).value = Object.values(data)[i].AisinSubPremiumR
+            row.getCell(22).value = Object.values(data)[i].VehicleCode
+            row.commit()
+            for (let j = 0; j < CellName.length; j++) {
+                let Cell = CellName[j]+(i+3)
                 ws.getCell(Cell).border = {
                     top: {style:'thin', color: {argb:'00000000'}},
                     left: {style:'thin', color: {argb:'00000000'}},

@@ -2,6 +2,7 @@ var express = require("express");
 const app = express();
 var cors = require("cors");
 const helmet = require("helmet");
+const bodyParser = require("body-parser");
 const { Server } = require("socket.io");
 const session = require("express-session");
 var consts = require("./bin/constants/constindex")
@@ -57,6 +58,7 @@ app.use(
         },
     })
 );
+
 app.use("/auth", authRouter); // Auth Router
 app.use("/sch", searchRouter); //Search Router
 app.use("/exp", pdfRouter); //Details and PartList Router
