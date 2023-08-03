@@ -292,7 +292,7 @@ router.route("/result").post(async (req, res) => {
                             JOIN part_name_mapping pmap ON p.part_name_mappping_id = pmap.part_name_mappping_id)
                             FULL OUTER JOIN part_aisin_premium ppre ON p.part_id = ppre.part_id)
                             FULL OUTER JOIN aisin_premium pre ON ppre.aisin_premium_id = pre.aisin_premium_id)
-                            WHERE ppre.aisin_premium_code =  $1`,
+                            WHERE pre.aisin_premium_code =  $1`,
                     [req.body.aisin_premium_code[i]]
                 );
                 aisinData = aisin_premium_code.rows;
@@ -339,7 +339,7 @@ router.route("/result").post(async (req, res) => {
                 mergeData.push("There is no car matched your search");
                 res.json({ status: "There is no car matched your search" });
             } else {
-                console.log(mergeData);
+                // console.log(mergeData);
 
                 var data = [];
                 var freq = [];
@@ -351,7 +351,7 @@ router.route("/result").post(async (req, res) => {
                         data.push(key);
                     }
                 }
-                console.log(data);
+                // console.log(data);
 
                 var tableData = [];
 
@@ -389,6 +389,7 @@ router.route("/result").post(async (req, res) => {
                     console.log("There is no car matched your search");
                     res.json({ status: "There is no car matched your search" });
                 } else {
+                    console.log("There's result. Sample result of car_info_id:", result[0].car_info_id);
                     for (let i = 0; i < result.length; i++) {
                         resultTable.push({
                             car_info_id: result[i].car_info_id, //
