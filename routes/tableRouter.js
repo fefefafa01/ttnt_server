@@ -242,13 +242,15 @@ router.route("/result").post(async (req, res) => {
 
             for (let i = 0; i < req.body.aisin_part_name.length; i++) {
                 const aisin_part_name = await client.query(
-                    `SELECT info.car_info_id, map.aisin_part_name from (((((manufacturer manu 
-                        join car_brand brand on manu.manufacturer_id = brand.manufacturer_id)
-                        join car_series series on brand.car_brand_id = series.car_brand_id)
-                        join car_model model on series.car_series_id = model.car_series_id)
-                        join car_information info on model.car_model_id = info.car_model_id)
-                        join part_name_mapping map on manu.manufacturer_id = map.manufacturer_id)
-                        WHERE map.aisin_part_name =  $1`,
+                    `SELECT car.car_info_id, pmap.aisin_part_name from (((((((car_information car
+                        JOIN car_model model ON car.car_model_id = model.car_model_id)
+                        JOIN car_series series ON model.car_series_id = series.car_series_id)
+                        JOIN car_brand brand ON series.car_brand_id = brand.car_brand_id)
+                        JOIN manufacturer manu ON brand.manufacturer_id = manu.manufacturer_id)
+                        JOIN part_competiter_info com ON manu.manufacturer_id = com.manufacturer_id)
+                        JOIN part p ON com.part_id = p.part_id)
+                        JOIN part_name_mapping pmap ON p.part_name_mappping_id = pmap.part_name_mappping_id)
+                        WHERE pmap.aisin_part_name =  $1`,
                     [req.body.aisin_part_name[i]]
                 );
                 partData = aisin_part_name.rows;
@@ -259,14 +261,14 @@ router.route("/result").post(async (req, res) => {
 
             for (let i = 0; i < req.body.part_code.length; i++) {
                 const part_code = await client.query(
-                    `SELECT info.car_info_id, part.part_code from ((((((manufacturer manu 
-                        join car_brand brand on manu.manufacturer_id = brand.manufacturer_id)
-                        join car_series series on brand.car_brand_id = series.car_brand_id)
-                        join car_model model on series.car_series_id = model.car_series_id)
-                        join car_information info on model.car_model_id = info.car_model_id)
-                        join part_name_mapping map on manu.manufacturer_id = map.manufacturer_id)
-                        join part on map.part_sub_group_id = part.part_sub_group_id)
-                        WHERE part.part_code =  $1`,
+                    `SELECT car.car_info_id, p.part_code from ((((((car_information car
+                        JOIN car_model model ON car.car_model_id = model.car_model_id)
+                        JOIN car_series series ON model.car_series_id = series.car_series_id)
+                        JOIN car_brand brand ON series.car_brand_id = brand.car_brand_id)
+                        JOIN manufacturer manu ON brand.manufacturer_id = manu.manufacturer_id)
+                        JOIN part_competiter_info com ON manu.manufacturer_id = com.manufacturer_id)
+                        JOIN part p ON com.part_id = p.part_id)
+                        WHERE p.part_code =  $1`,
                     [req.body.part_code[i]]
                 );
                 oeData = part_code.rows;
@@ -277,16 +279,17 @@ router.route("/result").post(async (req, res) => {
 
             for (let i = 0; i < req.body.aisin_premium_code.length; i++) {
                 const aisin_premium_code = await client.query(
-                    `SELECT info.car_info_id, a.aisin_premium_code from ((((((((manufacturer manu 
-                        join car_brand brand on manu.manufacturer_id = brand.manufacturer_id)
-                        join car_series series on brand.car_brand_id = series.car_brand_id)
-                        join car_model model on series.car_series_id = model.car_series_id)
-                        join car_information info on model.car_model_id = info.car_model_id)
-                        join part_name_mapping map on manu.manufacturer_id = map.manufacturer_id)
-                        join part on map.part_sub_group_id = part.part_sub_group_id)
-                        join part_aisin_premium ppre on part.part_id = ppre.part_id)
-                        join aisin_premium a on ppre.aisin_premium_id = a.aisin_premium_id)
-                        WHERE a.aisin_premium_code =  $1`,
+                    `SELECT car.car_info_id, pre.aisin_premium_code from (((((((((car_information car
+                            JOIN car_model model ON car.car_model_id = model.car_model_id)
+                            JOIN car_series series ON model.car_series_id = series.car_series_id)
+                            JOIN car_brand brand ON series.car_brand_id = brand.car_brand_id)
+                            JOIN manufacturer manu ON brand.manufacturer_id = manu.manufacturer_id)
+                            JOIN part_competiter_info com ON manu.manufacturer_id = com.manufacturer_id)
+                            JOIN part p ON com.part_id = p.part_id)
+                            JOIN part_name_mapping pmap ON p.part_name_mappping_id = pmap.part_name_mappping_id)
+                            FULL OUTER JOIN part_aisin_premium ppre ON p.part_id = ppre.part_id)
+                            FULL OUTER JOIN aisin_premium pre ON ppre.aisin_premium_id = pre.aisin_premium_id)
+                            WHERE ppre.aisin_premium_code =  $1`,
                     [req.body.aisin_premium_code[i]]
                 );
                 aisinData = aisin_premium_code.rows;
@@ -297,12 +300,12 @@ router.route("/result").post(async (req, res) => {
 
             for (let i = 0; i < req.body.competiter_part_code.length; i++) {
                 const competiter_part_code = await client.query(
-                    `SELECT info.car_info_id, com.competiter_part_code from (((((manufacturer manu 
-                        join car_brand brand on manu.manufacturer_id = brand.manufacturer_id)
-                        join car_series series on brand.car_brand_id = series.car_brand_id)
-                        join car_model model on series.car_series_id = model.car_series_id)
-                        join car_information info on model.car_model_id = info.car_model_id)
-                        join part_competiter_info com on manu.manufacturer_id = com.manufacturer_id)
+                    `SELECT car.car_info_id, com.competiter_part_code (((((car_information car
+                        JOIN car_model model ON car.car_model_id = model.car_model_id)
+                        JOIN car_series series ON model.car_series_id = series.car_series_id)
+                        JOIN car_brand brand ON series.car_brand_id = brand.car_brand_id)
+                        JOIN manufacturer manu ON brand.manufacturer_id = manu.manufacturer_id)
+                        JOIN part_competiter_info com ON manu.manufacturer_id = com.manufacturer_id)
                         WHERE com.competiter_part_code =  $1`,
                     [req.body.competiter_part_code[i]]
                 );
@@ -379,7 +382,6 @@ router.route("/result").post(async (req, res) => {
                     }
                 }
 
-                console.log(result);
                 if (result == "") {
                     console.log("There is no car matched your search");
                     res.json({ status: "There is no car matched your search" });
