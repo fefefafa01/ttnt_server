@@ -396,12 +396,8 @@ router.route("/result").post(async (req, res) => {
                             car_maker: result[i].manufacturer_name, //
                             car_model_name: result[i].car_model_name, //
                             model_code: result[i].model_code,
-                            start_of_production: result[
-                                i
-                            ].start_of_production.substring(0, 4), //
-                            end_of_production: result[
-                                i
-                            ].end_of_production.substring(0, 4), //
+                            start_of_production: result[i].start_of_production.substring(0, 4), //
+                            end_of_production: result[i].end_of_production.substring(0, 4), //
                             drivers_position: result[i].drivers_position, //
                             engine_code: result[i].engine_model, //
                             displacement_code: result[i].displacement_code,
@@ -412,16 +408,10 @@ router.route("/result").post(async (req, res) => {
                             speed: result[i].speed,
                             drivetrain: result[i].drivetrain,
                             oe: result[i].part_code,
-                            part_end_time: result[i].part_end_time.substring(
-                                2,
-                                4
-                            ),
-                            part_start_time: result[
-                                i
-                            ].part_start_time.substring(2, 4),
+                            part_end_time: result[i].part_end_time.substring(2, 4),
+                            part_start_time: result[i].part_start_time.substring(2, 4),
                             aisin_premium_code: result[i].aisin_premium_code,
-                            aisin_sub_premium_code:
-                                result[i].aisin_sub_premium_code,
+                            aisin_sub_premium_code: result[i].aisin_sub_premium_code,
                             aisin_part_name: result[i].aisin_part_name,
                         });
                     }
