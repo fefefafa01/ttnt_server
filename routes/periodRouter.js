@@ -4,7 +4,7 @@ const client = require("./connectdb");
 const logger = require("./logger.js");
 
 router.route("/summary").post(async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     var data = { sum: 0, coverage: 0, coverage_rate: 0 };
     if (
         (req.body.country_name.length === 0 || req.body.country_name === "") &&
@@ -22,11 +22,13 @@ router.route("/summary").post(async (req, res) => {
             HAVING ROUND(SUM(coverage::numeric) / SUM(total) * 100) BETWEEN $1 AND $2`,
             [req.body.start_cover, req.body.end_cover]
         );
-        data.sum = fullData.rows[0].total_sum;
-        data.coverage = fullData.rows[0].total_coverage;
-        data.coverage_rate = parseInt(
-            (Number(data.coverage) * 100) / Number(data.sum)
-        );
+        if (fullData.rowCount > 0) {
+            data.sum = fullData.rows[0].total_sum;
+            data.coverage = fullData.rows[0].total_coverage;
+            data.coverage_rate = parseInt(
+                (Number(data.coverage) * 100) / Number(data.sum)
+            );
+        }
     } else {
         var countrydata = [],
             makerdata = [],
@@ -321,8 +323,8 @@ router.route("/summary").post(async (req, res) => {
                 }
             }
 
-            console.log(temperal);
-            console.log(temp);
+            // console.log(temperal);
+            // console.log(temp);
 
             //Purging if same value
 
@@ -340,7 +342,7 @@ router.route("/summary").post(async (req, res) => {
 });
 
 router.route("/brandChart").post(async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     var brandName = [];
     var coverageRate = [];
     if (
@@ -658,8 +660,8 @@ router.route("/brandChart").post(async (req, res) => {
                 }
             }
         }
-        console.log(temp.length);
-        console.log(temp[1]);
+        // console.log(temp.length);
+        // console.log(temp[1]);
 
         const mergedData = temp.reduce((acc, current) => {
             const existingIndex = acc.findIndex(
@@ -684,7 +686,7 @@ router.route("/brandChart").post(async (req, res) => {
             );
             coverageRate.push(coverage_rate);
         }
-        console.log(brandName, coverageRate);
+        // console.log(brandName, coverageRate);
     }
 
     res.json({ brandName: brandName, coverageRate: coverageRate });
