@@ -290,8 +290,6 @@ router.route("/downpart").post( (req, res) => {
     wb.xlsx.readFile("bin/constants/PartsTemplate.xlsx")
     .then(function() {
         var ws = wb.getWorksheet(1)
-        // Object.keys(data).forEach(count+1)
-        // console.log(count)
         let i = 0
         while(Object.values(data)[i]) {
             var row = ws.getRow(i+2)
@@ -350,8 +348,6 @@ router.route("/downvehicle").post( (req, res) => {
     wb.xlsx.readFile("bin/constants/VehicleTemplate.xlsx")
     .then(function() {
         var ws = wb.getWorksheet(1)
-        // Object.keys(data).forEach(count+1)
-        // console.log(count)
         let i = 0
         while(Object.values(data)[i]) {
             var row = ws.getRow(i+2)
@@ -417,8 +413,6 @@ router.route("/downresultlist").post( (req, res) => {
     wb.xlsx.readFile("bin/constants/ResultListTemplate.xlsx")
     .then(function() {
         var ws = wb.getWorksheet(1)
-        // Object.keys(data).forEach(count+1)
-        // console.log(count)
         let i = 0
         while(Object.values(data)[i]) {
             var row = ws.getRow(i+3)
@@ -477,8 +471,6 @@ router.route("/downresultpart").post( (req, res) => {
     wb.xlsx.readFile("bin/constants/ResultPartsTemplate.xlsx")
     .then(function() {
         var ws = wb.getWorksheet(1) 
-        // Object.keys(data).forEach(count+1)
-        // console.log(count)
         let i = 0
         while(Object.values(data)[i]) {
             var row = ws.getRow(i+2)

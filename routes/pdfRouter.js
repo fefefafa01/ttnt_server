@@ -74,7 +74,7 @@ router.route("/model").post(async (req, res) => {
                 dtrain: drivetrain,
             });
         } else {
-            console.log("No Car Model Found")
+            console.log("No Car Model Found (pdfRouter.js)")
             res.json({
                 maker: "",
                 model: "",
@@ -303,8 +303,7 @@ router.route("/partList").post(async (req, res) => {
         where inf.car_info_id = $1 and sg.part_sub_group_name = $2 order by part_group_name`,
         [req.body.id, req.body.partSubGroup]
     );
-    console.log(req.body);
-    // console.log(partinfo);
+    console.log("First Part Info, export Car_ID (pdfRouter.js):", partinfo.rows[0].car_info_id);
     //Results can be exported
     var totalPart = [];
     for (let i = 0; i < partinfo.rowCount; i++) {
@@ -319,8 +318,7 @@ router.route("/partList").post(async (req, res) => {
     }
 
     //Export Result
-    // console.log(totalPart);
-    console.log("Hay", totalPart[1]);
+    // console.log("Hay", totalPart[1]);
     res.json({ partList: totalPart });
 });
 
@@ -333,19 +331,18 @@ router.route("/subGroup").post(async (req, res) => {
         where inf.car_info_id = $1`,
         [req.body]
     );
-    console.log(partSubGroup);
+    console.log("First Sub-group (pdfRouter.js):", partSubGroup.rows[0].part_sub_group_name);
     //Results can be exported
     var totalPartSubGroup = [];
     for (let i = 0; i < partSubGroup.rowCount; i++) {
         var subGroupArr = {};
         subGroupArr.subGroup = partSubGroup.rows[i].part_sub_group_name;
-        console.log("Here", subGroupArr);
+        // console.log("Here", subGroupArr);
         totalPartSubGroup[i] = subGroupArr;
     }
 
     //Export Result
-    console.log(totalPartSubGroup);
-    console.log("Hay", totalPartSubGroup[1]);
+    // console.log("Hay", totalPartSubGroup[1]);
     res.json({ subGroupList: totalPartSubGroup });
 });
 

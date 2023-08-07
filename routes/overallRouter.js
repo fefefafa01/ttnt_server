@@ -157,8 +157,6 @@ router.route("/overallTable").post(async (req, res) => {
         overallValMTAT[i] = overallCheck;
     }
 
-    // console.log(overallValMTAT);
-
     res.json({
         carName: totalMakerMTAT,
         partMT: totalPartMT,
@@ -789,7 +787,7 @@ router.route("/downoverall").post(async (req, res) => {
             }
         }
         console.log(
-            "Searched Values:",
+            "Searched Values (overallRouter.js):",
             countrydata.length,
             makerdata.length,
             transdata.length,
@@ -861,7 +859,7 @@ router.route("/downoverall").post(async (req, res) => {
                 }
             }
         }
-        console.log("Fitting Criteria Values:", temperal.length, temp.length);
+        console.log("Fitting Criteria Values (overallRouter.js):", temperal.length, temp.length);
         //Purging if same value
         if (temp.length > 1) {
             for (let i = 0; i < temp.length - 1; i++) {
@@ -912,7 +910,7 @@ router.route("/downoverall").post(async (req, res) => {
         order by original_part_name`
     );
     console.log(
-        "Distinct Criteria Values:",
+        "Distinct Criteria Values (overallRouter.js):",
         allCountry.rowCount,
         allMaker.rowCount,
         allTrans.rowCount,

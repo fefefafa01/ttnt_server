@@ -335,13 +335,12 @@ router.route("/result").post(async (req, res) => {
             if (req.body.aisin_premium_code.length != 0) count++;
             if (req.body.competiter_part_code.length != 0) count++;
 
-            console.log(count);
+            console.log("Number of searched criteria (tableRouter.js):", count);
 
             if (mergeData === 0) {
                 mergeData.push("There is no car matched your search");
                 res.json({ status: "There is no car matched your search" });
             } else {
-                // console.log(mergeData);
 
                 var data = [];
                 var freq = [];
@@ -353,7 +352,6 @@ router.route("/result").post(async (req, res) => {
                         if (key !== "null") data.push(key);
                     }
                 }
-                // console.log(data);
 
                 var tableData = [];
 
@@ -388,10 +386,10 @@ router.route("/result").post(async (req, res) => {
                 }
 
                 if (result == "") {
-                    console.log("There is no car matched your search");
+                    console.log("There is no car matched your search (tableRouter.js)");
                     res.json({ status: "There is no car matched your search" });
                 } else {
-                    console.log("There's result. Sample result of car_info_id:", result[0].car_info_id);
+                    console.log("There's result. Sample result of car_info_id (tableRouter.js):", result[0].car_info_id);
                     for (let i = 0; i < result.length; i++) {
                         resultTable.push({
                             car_info_id: result[i].car_info_id, //

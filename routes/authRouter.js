@@ -36,20 +36,20 @@ router
                         id: potentialLogin.rows[0].id,
                     };
                     logger.dlogger.log("info", "Logged In");
-                    console.log("Logged In");
+                    console.log("Login Status (authRouter.js): Logged In");
                     res.json({ loggedIn: true, email: req.body.email }); 
                 } else {
                     //Invalid Password
                     //Logger
                     res.json({ loggedIn: false, status: "Wrong Password" });
-                    console.log("Wrong Password");
+                    console.log("Login Status (authRouter.js): Wrong Password");
                     logger.dlogger.log("error", "Invalid Password");
                 }
             } else {
                 //Invalid Email
                 //Logger
                 res.json({ loggedIn: false, status: "Wrong Email" });
-                console.log("Wrong Email");
+                console.log("Login Status (authRouter.js): Wrong Email");
                 logger.dlogger.log("error", "Invalid Email");
             }
         } else {
@@ -61,7 +61,6 @@ router
 router.post("/reg", async (req, res) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i
     const passregex = /(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}/
-    // console.log(req.body)
     if (
         req.body.email!=="" && req.body.password!=="" && 
         req.body.first_name!=="" && req.body.lastname!=="" &&
@@ -76,9 +75,7 @@ router.post("/reg", async (req, res) => {
         if (existingUser.rowCount === 0) {
             //reg
             var checkid = 0;
-            console.log("Pre-Hashed");
             const hashedPass = await bcrypt.hash(req.body.password, 10);
-            console.log("Hashed");
             const latestID = await client.query(
                 "SELECT user_id FROM ms_user ORDER BY user_id ASC"
             )
@@ -112,7 +109,7 @@ router.post("/reg", async (req, res) => {
                     false
                 ]
             );
-            console.log("Inserted. Chosen ID: ", checkid);
+            console.log("Register Status (authRouter.js): Inserted Data. Chosen ID: ", checkid);
             req.session.user = {
                 email: req.body.email,
                 id: newUserQuery.rows[0].id,
@@ -123,11 +120,11 @@ router.post("/reg", async (req, res) => {
                 status: "Registered",
             }); 
             logger.dlogger.log("info", "Account signed up successfully");
-            console.log("Registered");
+            console.log("Register Status (authRouter.js): Registered");
         } else {
             res.json({ loggedIn: false, status: "Email Taken" });
             logger.dlogger.log("error", "Email taken");
-            console.log("Email Taken");
+            console.log("Register Status (authRouter.js): Email Taken");
         }
     } else {
         logger.dlogger.log("error", "Invalid Input")
@@ -138,7 +135,6 @@ router.post("/reg", async (req, res) => {
 router.post("/resetpwd", async (req, res) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i
     const passregex = /(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}/
-    // console.log(req.body)
     if (
         req.body.email!=="" && req.body.password!=="" && 
         regex.test(req.body.email) && passregex.test(req.body.password) &&
@@ -169,17 +165,16 @@ router.post("/resetpwd", async (req, res) => {
             req.session.user = {
                 email: req.body.email,
             };
-            console.log(req.body.email);
             res.json({
                 loggedIn: false,
                 email: req.body.email,
                 status: "Changed Pass",
             }); //Replacable
-            console.log("Changed Pass");
+            console.log("Reset Password Status (authRouter.js): Changed Pass");
             logger.dlogger.log("info", "Reset Password successfully");
         } else {
             res.json({ loggedIn: false, status: "Email Unavailable" });
-            console.log("Email Unavailable");
+            console.log("Reset Password Status (authRouter.js): Email Unavailable");
             logger.dlogger.log("error", "Email Unavailable");
         }
     } else {
