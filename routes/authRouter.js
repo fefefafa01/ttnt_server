@@ -1,5 +1,4 @@
 const express = require("express");
-const dbLogger = require("./loggers.js");
 const router = express.Router();
 const client = require("./connectdb");
 const bcrypt = require("bcrypt");
@@ -7,142 +6,170 @@ const logger = require("./logger.js");
 
 router
     .route("/login")
-    // .get(async (req, res) => {
-    //     if (req.session.user && req.session.user.email) {
-    //         res.json({ loggedIn: true, email: req.session.user.email });
-    //       } else {
-    //         res.json({ loggedIn: false });
-    //       }
-    //     })
     .post(async (req, res) => {
-        dbLogger(req, res);
-        const potentialLogin = await client.query(
-            "SELECT * FROM MS_User WHERE Username= $1",
-            [req.body.email]
-        );
-        //........//
-        if (potentialLogin.rowCount > 0) {
-            //User Found, Checking Password
-            const isSamePass = await bcrypt.compare(
-                req.body.password,
-                potentialLogin.rows[0].password
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+        if (req.body.email!=="" && regex.test(req.body.email) && req.body.password!=="") {
+            const potentialLogin = await client.query(
+                "SELECT * FROM MS_User WHERE Username= $1",
+                [req.body.email]
             );
-            if (isSamePass) {
-                //Login
-                req.session.user = {
-                    email: req.body.email,
-                    id: potentialLogin.rows[0].id,
-                };
-                //Logging Accessed to account (U Minh)
-                logger.dlogger.log("info", "Logged In");
-                console.log("Logged In");
-                // const userRoleID = await client.query(
-                //     "SELECT Rold_Id FROM MS_User WHERE email= $1", [req.body.email]
-                // )
-                // const userRole = await client.query(
-                //     "SELECT Role_Name FROM MS_Roles WHERE Role_Id= $1", [userRoleID]
-                // )
-                // if (userRole==='Admin') {
-                //     res.json({ loggedIn: true, email: req.body.email, status:'Admin User'})
-                // } else if (userRole==='Viewer') {
-                //     res.json({ loggedIn: true, email: req.body.email, status:'Viewer User'})
-                // }
-                res.json({ loggedIn: true, email: req.body.email }); //Replacable
+
+            if (potentialLogin.rowCount > 0) {
+                //User Found, Checking Password
+                const isSamePass = await bcrypt.compare(
+                    req.body.password,
+                    potentialLogin.rows[0].password
+                );
+                if (isSamePass) {
+                    //Check firsttime
+                    const firsttime = await client.query(
+                        "SELECT firsttime_login FROM ms_user WHERE username = $1", [req.body.email]
+                    )
+                    if (firsttime.rows[0].firsttime_login===null || firsttime.rows[0].firsttime_login===false) {
+                        const updater = await client.query (
+                            "UPDATE ms_user SET firsttime_login=true WHERE Username = $1", [req.body.email]
+                        )
+                    }
+                    //Login
+                    req.session.user = {
+                        email: req.body.email,
+                        id: potentialLogin.rows[0].id,
+                    };
+                    logger.dlogger.log("info", "Logged In");
+                    console.log("Logged In");
+                    res.json({ loggedIn: true, email: req.body.email }); 
+                } else {
+                    //Invalid Password
+                    //Logger
+                    res.json({ loggedIn: false, status: "Wrong Password" });
+                    console.log("Wrong Password");
+                    logger.dlogger.log("error", "Invalid Password");
+                }
             } else {
-                //Invalid Password
+                //Invalid Email
                 //Logger
-                res.json({ loggedIn: false, status: "Wrong Password" });
-                console.log("Wrong Password");
-                logger.dlogger.log("error", "Invalid Password");
+                res.json({ loggedIn: false, status: "Wrong Email" });
+                console.log("Wrong Email");
+                logger.dlogger.log("error", "Invalid Email");
             }
         } else {
-            //Invalid Email
-            //Logger
-            res.json({ loggedIn: false, status: "Wrong Email" });
-            console.log("Wrong Email");
-            logger.dlogger.log("error", "Invalid Email");
+            logger.dlogger.log("error", "Invalid Input");
+            res.status(422).send("Unprocessable Entity")
         }
     });
 
 router.post("/reg", async (req, res) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-    dbLogger(req, res);
-    if (!req.body.first_name || !req.body.last_name) {
-        res.json({ loggedIn: false, status: "Name must not be empty" });
-        return;
-    } else if (!regex.test(req.body.email) || !req.body.password) {
-        res.json({ loggedIn: false, status: "Invalid Email or Password" });
-        return;
-    }
-    console.log("Passed");
-    const existingUser = await client.query(
-        "SELECT Username from MS_User WHERE Username=$1",
-        [req.body.email]
-    );
-    if (existingUser.rowCount === 0) {
-        //reg
-        console.log("Pre-Hashed");
-        if (req.body.password !== req.body.confpassword) {
-            res.json({ loggedIn: false, status: "Password Unmatched" });
-            logger.dlogger.log("info", "Password Unmatch");
-            console.log("Password Unmatch");
-        } else {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i
+    const passregex = /(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}/
+    // console.log(req.body)
+    if (
+        req.body.email!=="" && req.body.password!=="" && 
+        req.body.first_name!=="" && req.body.lastname!=="" &&
+        regex.test(req.body.email) && passregex.test(req.body.password) &&
+        req.body.password === req.body.confpassword
+    ) 
+    {
+        const existingUser = await client.query(
+            "SELECT Username from MS_User WHERE Username=$1",
+            [req.body.email]
+        );
+        if (existingUser.rowCount === 0) {
+            //reg
+            var checkid = 0;
+            console.log("Pre-Hashed");
             const hashedPass = await bcrypt.hash(req.body.password, 10);
             console.log("Hashed");
+            const latestID = await client.query(
+                "SELECT user_id FROM ms_user ORDER BY user_id ASC"
+            )
+            if (latestID.rows[0].user_id!==1) {
+                checkid = 1
+            } else {
+                for (let i = 0; i < latestID.rowCount; i++) {
+                    if (i+1 < latestID.rowCount) {
+                        if ((latestID.rows[i].user_id+1)!==latestID.rows[i+1].user_id) {
+                            checkid = latestID.rows[i].user_id+1;
+                            break;
+                        }
+                    } else {
+                        checkid = latestID.rows[i].user_id+1;
+                    }
+                }
+            }
             const newUserQuery = await client.query(
-                "INSERT INTO MS_User(Username, Firstname, Lastname, Password) values ($1, $2, $3, $4) RETURNING Username",
+                `INSERT INTO MS_User(user_id, Username, Firstname, Lastname, Password, role_id, created_by, is_active, updated_by, firsttime_login) 
+                    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING Username`,
                 [
+                    checkid,
                     req.body.email,
                     req.body.first_name,
                     req.body.last_name,
                     hashedPass,
+                    3,
+                    checkid,
+                    true,
+                    checkid,
+                    false
                 ]
             );
-            console.log("Inserted");
+            console.log("Inserted. Chosen ID: ", checkid);
             req.session.user = {
                 email: req.body.email,
                 id: newUserQuery.rows[0].id,
             };
-            //Logging Accessed to account (U Minh)
             res.json({
                 loggedIn: false,
                 email: req.body.email,
                 status: "Registered",
-            }); //Replacable
+            }); 
             logger.dlogger.log("info", "Account signed up successfully");
             console.log("Registered");
+        } else {
+            res.json({ loggedIn: false, status: "Email Taken" });
+            logger.dlogger.log("error", "Email taken");
+            console.log("Email Taken");
         }
     } else {
-        //Logging Error (U Minh)
-        res.json({ loggedIn: false, status: "Email Taken" }); //Replacable with loggers
-        logger.dlogger.log("error", "Email taken");
-        console.log("Email Taken");
+        logger.dlogger.log("error", "Invalid Input")
+        res.status(422).send("Unprocessable Entity")
     }
 });
 
 router.post("/resetpwd", async (req, res) => {
-    dbLogger(req, res);
-
-    const existingUser = await client.query(
-        "SELECT Username from ms_user WHERE Username=$1",
-        [req.body.email]
-    );
-    if (existingUser.rowCount > 0) {
-        if (req.body.password !== req.body.confpassword) {
-            res.json({ loggedIn: false, status: "Password Unmatched" });
-            logger.dlogger.log("info", "Password Unmatch");
-            console.log("Password Unmatch");
-        } else {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i
+    const passregex = /(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}/
+    // console.log(req.body)
+    if (
+        req.body.email!=="" && req.body.password!=="" && 
+        regex.test(req.body.email) && passregex.test(req.body.password) &&
+        req.body.password === req.body.confpassword
+    ) 
+    {
+        const existingUser = await client.query(
+            "SELECT Username from ms_user WHERE Username=$1",
+            [req.body.email]
+        );
+        if (existingUser.rowCount > 0) {
+            //Current Time
+            var date_ob = new Date();
+            var day = ("0" + date_ob.getDate()).slice(-2);
+            var month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
+            var year = date_ob.getFullYear();
+            var hours = date_ob.getHours();
+            var minutes = date_ob.getMinutes();
+            var seconds = date_ob.getSeconds();
+            var milisecs = date_ob.getMilliseconds();
+            var dateTime = year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds + "." + milisecs;
+            //Update Database
             const hashedPass = await bcrypt.hash(req.body.password, 10);
             const newPasswordQuery = await client.query(
-                "UPDATE ms_user SET Password = $1 WHERE Username = $2",
-                [hashedPass, req.body.email]
+                "UPDATE ms_user SET Password = $1, updated_by = user_id, updated_date = $2 WHERE Username = $3",
+                [hashedPass, dateTime, req.body.email]
             );
             req.session.user = {
                 email: req.body.email,
             };
             console.log(req.body.email);
-            //Logging Accessed to account (U Minh)
             res.json({
                 loggedIn: false,
                 email: req.body.email,
@@ -150,12 +177,14 @@ router.post("/resetpwd", async (req, res) => {
             }); //Replacable
             console.log("Changed Pass");
             logger.dlogger.log("info", "Reset Password successfully");
+        } else {
+            res.json({ loggedIn: false, status: "Email Unavailable" });
+            console.log("Email Unavailable");
+            logger.dlogger.log("error", "Email Unavailable");
         }
     } else {
-        //Logging Error (U Minh)
-        res.json({ loggedIn: false, status: "Email Unavailable" }); //Replacable with loggers
-        console.log("Email Unavailable");
-        logger.dlogger.log("error", "Email Unavailable");
+        logger.dlogger.log("error", "Invalid Input")
+        res.status(422).send("Unprocessable Entity")
     }
 });
 module.exports = router;
