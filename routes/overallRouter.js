@@ -169,41 +169,52 @@ router.route("/overallTable").post(async (req, res) => {
 });
 
 router.route("/downoverall").post(async (req, res) => {
-    var data = []
-    if ((req.body.country_name.length===0 || req.body.country_name==="") &&
-        (req.body.manufacturer_name.length===0 || req.body.manufacturer_name==="") &&
-        (req.body.transmission_type.length===0 || req.body.transmission_type==="") &&
-        (req.body.part_group.length===0 || req.body.part_group==="") &&
-        (req.body.part_name.length===0 || req.body.part_name==="")
-        ) {
+    var data = [];
+    if (
+        (req.body.country_name.length === 0 || req.body.country_name === "") &&
+        (req.body.manufacturer_name.length === 0 ||
+            req.body.manufacturer_name === "") &&
+        (req.body.transmission_type.length === 0 ||
+            req.body.transmission_type === "") &&
+        (req.body.part_group.length === 0 || req.body.part_group === "") &&
+        (req.body.part_name.length === 0 || req.body.part_name === "")
+    ) {
         const fullData = await client.query(
-        `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, 
+            `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, 
         ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
         from part_summary_info 
         group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
         order by country_name, car_brand_name, part_group_name, original_part_name`
-        )
+        );
         for (let i = 0; i < fullData.rowCount; i++) {
-            var concatedata = {}
-            var endyear = fullData.rows[i].end_of_production.slice(0, 4)
-            concatedata.car_maker = fullData.rows[i].car_brand_name
-            concatedata.part_group = fullData.rows[i].part_group_name
-            concatedata.part_name = fullData.rows[i].original_part_name
-            concatedata.year = fullData.rows[i].start_of_production.slice(0, 4)
-            concatedata.month = fullData.rows[i].start_of_production.slice(4, 6)
-            concatedata.coverage = fullData.rows[i].coverage_rate
-            
-            if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+            var concatedata = {};
+            var endyear = fullData.rows[i].end_of_production.slice(0, 4);
+            concatedata.car_maker = fullData.rows[i].car_brand_name;
+            concatedata.part_group = fullData.rows[i].part_group_name;
+            concatedata.part_name = fullData.rows[i].original_part_name;
+            concatedata.year = fullData.rows[i].start_of_production.slice(0, 4);
+            concatedata.month = fullData.rows[i].start_of_production.slice(
+                4,
+                6
+            );
+            concatedata.coverage = fullData.rows[i].coverage_rate;
+
+            if (
+                parseInt(concatedata.coverage) >= req.body.start_cover &&
+                parseInt(concatedata.coverage) <= req.body.end_cover
+            ) {
                 if (
-                    ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                    ||
-                    (req.body.start_year==="" && req.body.end_year==="")
-                    ||
-                    ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                    ||
-                    ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                    ) {
-                    data.push(concatedata)
+                    (parseInt(concatedata.year) >=
+                        parseInt(req.body.start_year) &&
+                        parseInt(endyear) <= parseInt(req.body.end_year)) ||
+                    (req.body.start_year === "" && req.body.end_year === "") ||
+                    (parseInt(concatedata.year) >=
+                        parseInt(req.body.start_year) &&
+                        req.body.end_year === "") ||
+                    (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                        req.body.start_year === "")
+                ) {
+                    data.push(concatedata);
                 } else {
                     continue;
                 }
@@ -212,11 +223,15 @@ router.route("/downoverall").post(async (req, res) => {
             }
         }
     } else {
-        var countrydata = [], makerdata = [], transdata = [], pnamedata = [], pgroupdata = []
-        //Country Querying 
-        if (req.body.country_name.length>0 && req.body.country_name!=="") {
+        var countrydata = [],
+            makerdata = [],
+            transdata = [],
+            pnamedata = [],
+            pgroupdata = [];
+        //Country Querying
+        if (req.body.country_name.length > 0 && req.body.country_name !== "") {
             for (let i = 0; i < req.body.country_name.length; i++) {
-                const fullCountryData =  await client.query (
+                const fullCountryData = await client.query(
                     `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, 
                     ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
                     from part_summary_info 
@@ -224,29 +239,46 @@ router.route("/downoverall").post(async (req, res) => {
                     group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
                     order by country_name, car_brand_name, part_group_name, original_part_name`,
                     [req.body.country_name[i]]
-                )
+                );
                 for (let j = 0; j < fullCountryData.rowCount; j++) {
-                    var concatedata = {}
-                    var endyear = fullCountryData.rows[j].end_of_production.slice(0, 4)
-                    concatedata.car_maker = fullCountryData.rows[j].car_brand_name
-                    concatedata.part_group = fullCountryData.rows[j].part_group_name
-                    concatedata.part_name = fullCountryData.rows[j].original_part_name
-                    concatedata.year = fullCountryData.rows[j].start_of_production.slice(0, 4)
-                    concatedata.month = fullCountryData.rows[j].start_of_production.slice(4, 6)
-                    concatedata.coverage = fullCountryData.rows[j].coverage_rate
+                    var concatedata = {};
+                    var endyear = fullCountryData.rows[
+                        j
+                    ].end_of_production.slice(0, 4);
+                    concatedata.car_maker =
+                        fullCountryData.rows[j].car_brand_name;
+                    concatedata.part_group =
+                        fullCountryData.rows[j].part_group_name;
+                    concatedata.part_name =
+                        fullCountryData.rows[j].original_part_name;
+                    concatedata.year = fullCountryData.rows[
+                        j
+                    ].start_of_production.slice(0, 4);
+                    concatedata.month = fullCountryData.rows[
+                        j
+                    ].start_of_production.slice(4, 6);
+                    concatedata.coverage =
+                        fullCountryData.rows[j].coverage_rate;
 
-                    if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+                    if (
+                        parseInt(concatedata.coverage) >=
+                            req.body.start_cover &&
+                        parseInt(concatedata.coverage) <= req.body.end_cover
+                    ) {
                         if (
-                            ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                            ||
-                            (req.body.start_year==="" && req.body.end_year==="")
-                            ||
-                            ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                            ||
-                            ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                            ) {
-                            countrydata.push(concatedata)
-                            
+                            (parseInt(concatedata.year) >=
+                                parseInt(req.body.start_year) &&
+                                parseInt(endyear) <=
+                                    parseInt(req.body.end_year)) ||
+                            (req.body.start_year === "" &&
+                                req.body.end_year === "") ||
+                            (parseInt(concatedata.year) >=
+                                parseInt(req.body.start_year) &&
+                                req.body.end_year === "") ||
+                            (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                                req.body.start_year === "")
+                        ) {
+                            countrydata.push(concatedata);
                         } else {
                             continue;
                         }
@@ -255,36 +287,53 @@ router.route("/downoverall").post(async (req, res) => {
                     }
                 }
             }
-        } else if (req.body.country_name.length===0 || req.body.country_name==="") {
-            const fullCountryData =  await client.query (
+        } else if (
+            req.body.country_name.length === 0 ||
+            req.body.country_name === ""
+        ) {
+            const fullCountryData = await client.query(
                 `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, 
                 ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
                 from part_summary_info 
                 group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
                 order by country_name, car_brand_name, part_group_name, original_part_name`
-            )
+            );
             for (let i = 0; i < fullCountryData.rowCount; i++) {
-                var concatedata = {}
-                var endyear = fullCountryData.rows[i].end_of_production.slice(0, 4)
-                concatedata.car_maker = fullCountryData.rows[i].car_brand_name
-                concatedata.part_group = fullCountryData.rows[i].part_group_name
-                concatedata.part_name = fullCountryData.rows[i].original_part_name
-                concatedata.year = fullCountryData.rows[i].start_of_production.slice(0, 4)
-                concatedata.month = fullCountryData.rows[i].start_of_production.slice(4, 6)
-                concatedata.coverage = fullCountryData.rows[i].coverage_rate
+                var concatedata = {};
+                var endyear = fullCountryData.rows[i].end_of_production.slice(
+                    0,
+                    4
+                );
+                concatedata.car_maker = fullCountryData.rows[i].car_brand_name;
+                concatedata.part_group =
+                    fullCountryData.rows[i].part_group_name;
+                concatedata.part_name =
+                    fullCountryData.rows[i].original_part_name;
+                concatedata.year = fullCountryData.rows[
+                    i
+                ].start_of_production.slice(0, 4);
+                concatedata.month = fullCountryData.rows[
+                    i
+                ].start_of_production.slice(4, 6);
+                concatedata.coverage = fullCountryData.rows[i].coverage_rate;
 
-                if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+                if (
+                    parseInt(concatedata.coverage) >= req.body.start_cover &&
+                    parseInt(concatedata.coverage) <= req.body.end_cover
+                ) {
                     if (
-                        ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                        ||
-                        (req.body.start_year==="" && req.body.end_year==="")
-                        ||
-                        ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                        ||
-                        ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                        ) {
-                        countrydata.push(concatedata)
-                        
+                        (parseInt(concatedata.year) >=
+                            parseInt(req.body.start_year) &&
+                            parseInt(endyear) <= parseInt(req.body.end_year)) ||
+                        (req.body.start_year === "" &&
+                            req.body.end_year === "") ||
+                        (parseInt(concatedata.year) >=
+                            parseInt(req.body.start_year) &&
+                            req.body.end_year === "") ||
+                        (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                            req.body.start_year === "")
+                    ) {
+                        countrydata.push(concatedata);
                     } else {
                         continue;
                     }
@@ -294,9 +343,12 @@ router.route("/downoverall").post(async (req, res) => {
             }
         }
         //Manufacturer Querying
-        if (req.body.manufacturer_name.length>0 && req.body.manufacturer_name!=="") {
+        if (
+            req.body.manufacturer_name.length > 0 &&
+            req.body.manufacturer_name !== ""
+        ) {
             for (let i = 0; i < req.body.manufacturer_name.length; i++) {
-                const fullManuData =  await client.query (
+                const fullManuData = await client.query(
                     `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, 
                     ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
                     from part_summary_info 
@@ -304,29 +356,45 @@ router.route("/downoverall").post(async (req, res) => {
                     group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
                     order by country_name, car_brand_name, part_group_name, original_part_name`,
                     [req.body.manufacturer_name[i]]
-                )
+                );
                 for (let j = 0; j < fullManuData.rowCount; j++) {
-                    var concatedata = {}
-                    var endyear = fullManuData.rows[j].end_of_production.slice(0, 4)
-                    concatedata.car_maker = fullManuData.rows[j].car_brand_name
-                    concatedata.part_group = fullManuData.rows[j].part_group_name
-                    concatedata.part_name = fullManuData.rows[j].original_part_name
-                    concatedata.year = fullManuData.rows[j].start_of_production.slice(0, 4)
-                    concatedata.month = fullManuData.rows[j].start_of_production.slice(4, 6)
-                    concatedata.coverage = fullManuData.rows[j].coverage_rate
+                    var concatedata = {};
+                    var endyear = fullManuData.rows[j].end_of_production.slice(
+                        0,
+                        4
+                    );
+                    concatedata.car_maker = fullManuData.rows[j].car_brand_name;
+                    concatedata.part_group =
+                        fullManuData.rows[j].part_group_name;
+                    concatedata.part_name =
+                        fullManuData.rows[j].original_part_name;
+                    concatedata.year = fullManuData.rows[
+                        j
+                    ].start_of_production.slice(0, 4);
+                    concatedata.month = fullManuData.rows[
+                        j
+                    ].start_of_production.slice(4, 6);
+                    concatedata.coverage = fullManuData.rows[j].coverage_rate;
 
-                    if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+                    if (
+                        parseInt(concatedata.coverage) >=
+                            req.body.start_cover &&
+                        parseInt(concatedata.coverage) <= req.body.end_cover
+                    ) {
                         if (
-                            ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                            ||
-                            (req.body.start_year==="" && req.body.end_year==="")
-                            ||
-                            ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                            ||
-                            ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                            ) {
-                            makerdata.push(concatedata)
-                            
+                            (parseInt(concatedata.year) >=
+                                parseInt(req.body.start_year) &&
+                                parseInt(endyear) <=
+                                    parseInt(req.body.end_year)) ||
+                            (req.body.start_year === "" &&
+                                req.body.end_year === "") ||
+                            (parseInt(concatedata.year) >=
+                                parseInt(req.body.start_year) &&
+                                req.body.end_year === "") ||
+                            (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                                req.body.start_year === "")
+                        ) {
+                            makerdata.push(concatedata);
                         } else {
                             continue;
                         }
@@ -335,36 +403,51 @@ router.route("/downoverall").post(async (req, res) => {
                     }
                 }
             }
-        } else if (req.body.manufacturer_name.length===0 || req.body.manufacturer_name==="") {
-            const fullManuData =  await client.query (
+        } else if (
+            req.body.manufacturer_name.length === 0 ||
+            req.body.manufacturer_name === ""
+        ) {
+            const fullManuData = await client.query(
                 `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, 
                 ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
                 from part_summary_info 
                 group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
                 order by country_name, car_brand_name, part_group_name, original_part_name`
-            )
+            );
             for (let i = 0; i < fullManuData.rowCount; i++) {
-                var concatedata = {}
-                var endyear = fullManuData.rows[i].end_of_production.slice(0, 4)
-                concatedata.car_maker = fullManuData.rows[i].car_brand_name
-                concatedata.part_group = fullManuData.rows[i].part_group_name
-                concatedata.part_name = fullManuData.rows[i].original_part_name
-                concatedata.year = fullManuData.rows[i].start_of_production.slice(0, 4)
-                concatedata.month = fullManuData.rows[i].start_of_production.slice(4, 6)
-                concatedata.coverage = fullManuData.rows[i].coverage_rate
+                var concatedata = {};
+                var endyear = fullManuData.rows[i].end_of_production.slice(
+                    0,
+                    4
+                );
+                concatedata.car_maker = fullManuData.rows[i].car_brand_name;
+                concatedata.part_group = fullManuData.rows[i].part_group_name;
+                concatedata.part_name = fullManuData.rows[i].original_part_name;
+                concatedata.year = fullManuData.rows[
+                    i
+                ].start_of_production.slice(0, 4);
+                concatedata.month = fullManuData.rows[
+                    i
+                ].start_of_production.slice(4, 6);
+                concatedata.coverage = fullManuData.rows[i].coverage_rate;
 
-                if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+                if (
+                    parseInt(concatedata.coverage) >= req.body.start_cover &&
+                    parseInt(concatedata.coverage) <= req.body.end_cover
+                ) {
                     if (
-                        ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                        ||
-                        (req.body.start_year==="" && req.body.end_year==="")
-                        ||
-                        ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                        ||
-                        ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                        ) {
-                        makerdata.push(concatedata)
-                        
+                        (parseInt(concatedata.year) >=
+                            parseInt(req.body.start_year) &&
+                            parseInt(endyear) <= parseInt(req.body.end_year)) ||
+                        (req.body.start_year === "" &&
+                            req.body.end_year === "") ||
+                        (parseInt(concatedata.year) >=
+                            parseInt(req.body.start_year) &&
+                            req.body.end_year === "") ||
+                        (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                            req.body.start_year === "")
+                    ) {
+                        makerdata.push(concatedata);
                     } else {
                         continue;
                     }
@@ -374,9 +457,12 @@ router.route("/downoverall").post(async (req, res) => {
             }
         }
         //Transmission Querying
-        if (req.body.transmission_type.length>0 && req.body.transmission_type!=="") {
+        if (
+            req.body.transmission_type.length > 0 &&
+            req.body.transmission_type !== ""
+        ) {
             for (let i = 0; i < req.body.transmission_type.length; i++) {
-                const fullTransData =  await client.query (
+                const fullTransData = await client.query(
                     `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, transmission_type, 
                     ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
                     from part_summary_info 
@@ -384,29 +470,46 @@ router.route("/downoverall").post(async (req, res) => {
                     group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, transmission_type
                     order by country_name, car_brand_name, part_group_name, original_part_name`,
                     [req.body.transmission_type[i]]
-                )
+                );
                 for (let j = 0; j < fullTransData.rowCount; j++) {
-                    var concatedata = {}
-                    var endyear = fullTransData.rows[j].end_of_production.slice(0, 4)
-                    concatedata.car_maker = fullTransData.rows[j].car_brand_name
-                    concatedata.part_group = fullTransData.rows[j].part_group_name
-                    concatedata.part_name = fullTransData.rows[j].original_part_name
-                    concatedata.year = fullTransData.rows[j].start_of_production.slice(0, 4)
-                    concatedata.month = fullTransData.rows[j].start_of_production.slice(4, 6)
-                    concatedata.coverage = fullTransData.rows[j].coverage_rate
+                    var concatedata = {};
+                    var endyear = fullTransData.rows[j].end_of_production.slice(
+                        0,
+                        4
+                    );
+                    concatedata.car_maker =
+                        fullTransData.rows[j].car_brand_name;
+                    concatedata.part_group =
+                        fullTransData.rows[j].part_group_name;
+                    concatedata.part_name =
+                        fullTransData.rows[j].original_part_name;
+                    concatedata.year = fullTransData.rows[
+                        j
+                    ].start_of_production.slice(0, 4);
+                    concatedata.month = fullTransData.rows[
+                        j
+                    ].start_of_production.slice(4, 6);
+                    concatedata.coverage = fullTransData.rows[j].coverage_rate;
 
-                    if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+                    if (
+                        parseInt(concatedata.coverage) >=
+                            req.body.start_cover &&
+                        parseInt(concatedata.coverage) <= req.body.end_cover
+                    ) {
                         if (
-                            ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                            ||
-                            (req.body.start_year==="" && req.body.end_year==="")
-                            ||
-                            ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                            ||
-                            ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                            ) {
-                            transdata.push(concatedata)
-                            
+                            (parseInt(concatedata.year) >=
+                                parseInt(req.body.start_year) &&
+                                parseInt(endyear) <=
+                                    parseInt(req.body.end_year)) ||
+                            (req.body.start_year === "" &&
+                                req.body.end_year === "") ||
+                            (parseInt(concatedata.year) >=
+                                parseInt(req.body.start_year) &&
+                                req.body.end_year === "") ||
+                            (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                                req.body.start_year === "")
+                        ) {
+                            transdata.push(concatedata);
                         } else {
                             continue;
                         }
@@ -415,35 +518,52 @@ router.route("/downoverall").post(async (req, res) => {
                     }
                 }
             }
-        } else if (req.body.transmission_type.length===0 || req.body.transmission_type==="") {
-            const fullTransData =  await client.query (
+        } else if (
+            req.body.transmission_type.length === 0 ||
+            req.body.transmission_type === ""
+        ) {
+            const fullTransData = await client.query(
                 `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, 
                 ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
                 from part_summary_info 
                 group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
                 order by country_name, car_brand_name, part_group_name, original_part_name`
-            )
+            );
             for (let i = 0; i < fullTransData.rowCount; i++) {
-                var concatedata = {}
-                var endyear = fullTransData.rows[i].end_of_production.slice(0, 4)
-                concatedata.car_maker = fullTransData.rows[i].car_brand_name
-                concatedata.part_group = fullTransData.rows[i].part_group_name
-                concatedata.part_name = fullTransData.rows[i].original_part_name
-                concatedata.year = fullTransData.rows[i].start_of_production.slice(0, 4)
-                concatedata.month = fullTransData.rows[i].start_of_production.slice(4, 6)
-                concatedata.coverage = fullTransData.rows[i].coverage_rate
+                var concatedata = {};
+                var endyear = fullTransData.rows[i].end_of_production.slice(
+                    0,
+                    4
+                );
+                concatedata.car_maker = fullTransData.rows[i].car_brand_name;
+                concatedata.part_group = fullTransData.rows[i].part_group_name;
+                concatedata.part_name =
+                    fullTransData.rows[i].original_part_name;
+                concatedata.year = fullTransData.rows[
+                    i
+                ].start_of_production.slice(0, 4);
+                concatedata.month = fullTransData.rows[
+                    i
+                ].start_of_production.slice(4, 6);
+                concatedata.coverage = fullTransData.rows[i].coverage_rate;
 
-                if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+                if (
+                    parseInt(concatedata.coverage) >= req.body.start_cover &&
+                    parseInt(concatedata.coverage) <= req.body.end_cover
+                ) {
                     if (
-                        ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                        ||
-                        (req.body.start_year==="" && req.body.end_year==="")
-                        ||
-                        ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                        ||
-                        ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                        ) {
-                        transdata.push(concatedata)
+                        (parseInt(concatedata.year) >=
+                            parseInt(req.body.start_year) &&
+                            parseInt(endyear) <= parseInt(req.body.end_year)) ||
+                        (req.body.start_year === "" &&
+                            req.body.end_year === "") ||
+                        (parseInt(concatedata.year) >=
+                            parseInt(req.body.start_year) &&
+                            req.body.end_year === "") ||
+                        (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                            req.body.start_year === "")
+                    ) {
+                        transdata.push(concatedata);
                     } else {
                         continue;
                     }
@@ -453,9 +573,9 @@ router.route("/downoverall").post(async (req, res) => {
             }
         }
         //Part Group Querying
-        if (req.body.part_group.length>0 && req.body.part_group!=="") {
+        if (req.body.part_group.length > 0 && req.body.part_group !== "") {
             for (let i = 0; i < req.body.part_group.length; i++) {
-                const fullPGData =  await client.query (
+                const fullPGData = await client.query(
                     `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, transmission_type, 
                     ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
                     from part_summary_info 
@@ -463,29 +583,44 @@ router.route("/downoverall").post(async (req, res) => {
                     group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, transmission_type
                     order by country_name, car_brand_name, part_group_name, original_part_name`,
                     [req.body.part_group[i]]
-                )
+                );
                 for (let j = 0; j < fullPGData.rowCount; j++) {
-                    var concatedata = {}
-                    var endyear = fullPGData.rows[j].end_of_production.slice(0, 4)
-                    concatedata.car_maker = fullPGData.rows[j].car_brand_name
-                    concatedata.part_group = fullPGData.rows[j].part_group_name
-                    concatedata.part_name = fullPGData.rows[j].original_part_name
-                    concatedata.year = fullPGData.rows[j].start_of_production.slice(0, 4)
-                    concatedata.month = fullPGData.rows[j].start_of_production.slice(4, 6)
-                    concatedata.coverage = fullPGData.rows[j].coverage_rate
+                    var concatedata = {};
+                    var endyear = fullPGData.rows[j].end_of_production.slice(
+                        0,
+                        4
+                    );
+                    concatedata.car_maker = fullPGData.rows[j].car_brand_name;
+                    concatedata.part_group = fullPGData.rows[j].part_group_name;
+                    concatedata.part_name =
+                        fullPGData.rows[j].original_part_name;
+                    concatedata.year = fullPGData.rows[
+                        j
+                    ].start_of_production.slice(0, 4);
+                    concatedata.month = fullPGData.rows[
+                        j
+                    ].start_of_production.slice(4, 6);
+                    concatedata.coverage = fullPGData.rows[j].coverage_rate;
 
-                    if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+                    if (
+                        parseInt(concatedata.coverage) >=
+                            req.body.start_cover &&
+                        parseInt(concatedata.coverage) <= req.body.end_cover
+                    ) {
                         if (
-                            ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                            ||
-                            (req.body.start_year==="" && req.body.end_year==="")
-                            ||
-                            ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                            ||
-                            ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                            ) {
-                            pgroupdata.push(concatedata)
-                            
+                            (parseInt(concatedata.year) >=
+                                parseInt(req.body.start_year) &&
+                                parseInt(endyear) <=
+                                    parseInt(req.body.end_year)) ||
+                            (req.body.start_year === "" &&
+                                req.body.end_year === "") ||
+                            (parseInt(concatedata.year) >=
+                                parseInt(req.body.start_year) &&
+                                req.body.end_year === "") ||
+                            (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                                req.body.start_year === "")
+                        ) {
+                            pgroupdata.push(concatedata);
                         } else {
                             continue;
                         }
@@ -494,35 +629,49 @@ router.route("/downoverall").post(async (req, res) => {
                     }
                 }
             }
-        } else if (req.body.part_group.length===0 || req.body.part_group==="") {
-            const fullPGData =  await client.query (
+        } else if (
+            req.body.part_group.length === 0 ||
+            req.body.part_group === ""
+        ) {
+            const fullPGData = await client.query(
                 `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, 
                 ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
                 from part_summary_info 
                 group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
                 order by country_name, car_brand_name, part_group_name, original_part_name`
-            )
+            );
             for (let i = 0; i < fullPGData.rowCount; i++) {
-                var concatedata = {}
-                var endyear = fullPGData.rows[i].end_of_production.slice(0, 4)
-                concatedata.car_maker = fullPGData.rows[i].car_brand_name
-                concatedata.part_group = fullPGData.rows[i].part_group_name
-                concatedata.part_name = fullPGData.rows[i].original_part_name
-                concatedata.year = fullPGData.rows[i].start_of_production.slice(0, 4)
-                concatedata.month = fullPGData.rows[i].start_of_production.slice(4, 6)
-                concatedata.coverage = fullPGData.rows[i].coverage_rate
+                var concatedata = {};
+                var endyear = fullPGData.rows[i].end_of_production.slice(0, 4);
+                concatedata.car_maker = fullPGData.rows[i].car_brand_name;
+                concatedata.part_group = fullPGData.rows[i].part_group_name;
+                concatedata.part_name = fullPGData.rows[i].original_part_name;
+                concatedata.year = fullPGData.rows[i].start_of_production.slice(
+                    0,
+                    4
+                );
+                concatedata.month = fullPGData.rows[
+                    i
+                ].start_of_production.slice(4, 6);
+                concatedata.coverage = fullPGData.rows[i].coverage_rate;
 
-                if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+                if (
+                    parseInt(concatedata.coverage) >= req.body.start_cover &&
+                    parseInt(concatedata.coverage) <= req.body.end_cover
+                ) {
                     if (
-                        ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                        ||
-                        (req.body.start_year==="" && req.body.end_year==="")
-                        ||
-                        ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                        ||
-                        ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                        ) {
-                        pgroupdata.push(concatedata)
+                        (parseInt(concatedata.year) >=
+                            parseInt(req.body.start_year) &&
+                            parseInt(endyear) <= parseInt(req.body.end_year)) ||
+                        (req.body.start_year === "" &&
+                            req.body.end_year === "") ||
+                        (parseInt(concatedata.year) >=
+                            parseInt(req.body.start_year) &&
+                            req.body.end_year === "") ||
+                        (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                            req.body.start_year === "")
+                    ) {
+                        pgroupdata.push(concatedata);
                     } else {
                         continue;
                     }
@@ -532,9 +681,9 @@ router.route("/downoverall").post(async (req, res) => {
             }
         }
         //Part Name Querying
-        if (req.body.part_name.length>0 && req.body.part_name!=="") {
+        if (req.body.part_name.length > 0 && req.body.part_name !== "") {
             for (let i = 0; i < req.body.part_name.length; i++) {
-                const fullPNData =  await client.query (
+                const fullPNData = await client.query(
                     `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, transmission_type, 
                     ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
                     from part_summary_info 
@@ -542,29 +691,44 @@ router.route("/downoverall").post(async (req, res) => {
                     group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, transmission_type
                     order by country_name, car_brand_name, part_group_name, original_part_name`,
                     [req.body.part_name[i]]
-                )
+                );
                 for (let j = 0; j < fullPNData.rowCount; j++) {
-                    var concatedata = {}
-                    var endyear = fullPNData.rows[j].end_of_production.slice(0, 4)
-                    concatedata.car_maker = fullPNData.rows[j].car_brand_name
-                    concatedata.part_group = fullPNData.rows[j].part_group_name
-                    concatedata.part_name = fullPNData.rows[j].original_part_name
-                    concatedata.year = fullPNData.rows[j].start_of_production.slice(0, 4)
-                    concatedata.month = fullPNData.rows[j].start_of_production.slice(4, 6)
-                    concatedata.coverage = fullPNData.rows[j].coverage_rate
+                    var concatedata = {};
+                    var endyear = fullPNData.rows[j].end_of_production.slice(
+                        0,
+                        4
+                    );
+                    concatedata.car_maker = fullPNData.rows[j].car_brand_name;
+                    concatedata.part_group = fullPNData.rows[j].part_group_name;
+                    concatedata.part_name =
+                        fullPNData.rows[j].original_part_name;
+                    concatedata.year = fullPNData.rows[
+                        j
+                    ].start_of_production.slice(0, 4);
+                    concatedata.month = fullPNData.rows[
+                        j
+                    ].start_of_production.slice(4, 6);
+                    concatedata.coverage = fullPNData.rows[j].coverage_rate;
 
-                    if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+                    if (
+                        parseInt(concatedata.coverage) >=
+                            req.body.start_cover &&
+                        parseInt(concatedata.coverage) <= req.body.end_cover
+                    ) {
                         if (
-                            ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                            ||
-                            (req.body.start_year==="" && req.body.end_year==="")
-                            ||
-                            ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                            ||
-                            ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                            ) {
-                            pnamedata.push(concatedata)
-                            
+                            (parseInt(concatedata.year) >=
+                                parseInt(req.body.start_year) &&
+                                parseInt(endyear) <=
+                                    parseInt(req.body.end_year)) ||
+                            (req.body.start_year === "" &&
+                                req.body.end_year === "") ||
+                            (parseInt(concatedata.year) >=
+                                parseInt(req.body.start_year) &&
+                                req.body.end_year === "") ||
+                            (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                                req.body.start_year === "")
+                        ) {
+                            pnamedata.push(concatedata);
                         } else {
                             continue;
                         }
@@ -573,35 +737,49 @@ router.route("/downoverall").post(async (req, res) => {
                     }
                 }
             }
-        } else if (req.body.part_name.length===0 || req.body.part_name==="") {
-            const fullPNData =  await client.query (
+        } else if (
+            req.body.part_name.length === 0 ||
+            req.body.part_name === ""
+        ) {
+            const fullPNData = await client.query(
                 `select country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, 
                 ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS "coverage_rate"
                 from part_summary_info 
                 group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
                 order by country_name, car_brand_name, part_group_name, original_part_name`
-            )
+            );
             for (let i = 0; i < fullPNData.rowCount; i++) {
-                var concatedata = {}
-                var endyear = fullPNData.rows[i].end_of_production.slice(0, 4)
-                concatedata.car_maker = fullPNData.rows[i].car_brand_name
-                concatedata.part_group = fullPNData.rows[i].part_group_name
-                concatedata.part_name = fullPNData.rows[i].original_part_name
-                concatedata.year = fullPNData.rows[i].start_of_production.slice(0, 4)
-                concatedata.month = fullPNData.rows[i].start_of_production.slice(4, 6)
-                concatedata.coverage = fullPNData.rows[i].coverage_rate
+                var concatedata = {};
+                var endyear = fullPNData.rows[i].end_of_production.slice(0, 4);
+                concatedata.car_maker = fullPNData.rows[i].car_brand_name;
+                concatedata.part_group = fullPNData.rows[i].part_group_name;
+                concatedata.part_name = fullPNData.rows[i].original_part_name;
+                concatedata.year = fullPNData.rows[i].start_of_production.slice(
+                    0,
+                    4
+                );
+                concatedata.month = fullPNData.rows[
+                    i
+                ].start_of_production.slice(4, 6);
+                concatedata.coverage = fullPNData.rows[i].coverage_rate;
 
-                if ((parseInt(concatedata.coverage) >= req.body.start_cover) && (parseInt(concatedata.coverage) <= req.body.end_cover)) {
+                if (
+                    parseInt(concatedata.coverage) >= req.body.start_cover &&
+                    parseInt(concatedata.coverage) <= req.body.end_cover
+                ) {
                     if (
-                        ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && (parseInt(endyear) <= parseInt(req.body.end_year)))
-                        ||
-                        (req.body.start_year==="" && req.body.end_year==="")
-                        ||
-                        ((parseInt(concatedata.year) >= parseInt(req.body.start_year)) && req.body.end_year==="")
-                        ||
-                        ((parseInt(endyear) <= parseInt(req.body.end_year)) && req.body.start_year==="")
-                        ) {
-                        pnamedata.push(concatedata)
+                        (parseInt(concatedata.year) >=
+                            parseInt(req.body.start_year) &&
+                            parseInt(endyear) <= parseInt(req.body.end_year)) ||
+                        (req.body.start_year === "" &&
+                            req.body.end_year === "") ||
+                        (parseInt(concatedata.year) >=
+                            parseInt(req.body.start_year) &&
+                            req.body.end_year === "") ||
+                        (parseInt(endyear) <= parseInt(req.body.end_year) &&
+                            req.body.start_year === "")
+                    ) {
+                        pnamedata.push(concatedata);
                     } else {
                         continue;
                     }
@@ -610,9 +788,17 @@ router.route("/downoverall").post(async (req, res) => {
                 }
             }
         }
-        console.log("Searched Values:", countrydata.length, makerdata.length, transdata.length, pgroupdata.length, pnamedata.length)
+        console.log(
+            "Searched Values:",
+            countrydata.length,
+            makerdata.length,
+            transdata.length,
+            pgroupdata.length,
+            pnamedata.length
+        );
         //Check Data
-        var temperal = [], temp = []
+        var temperal = [],
+            temp = [];
         //Country to Car-Maker
         for (let i = 0; i < countrydata.length; i++) {
             for (let j = 0; j < makerdata.length; j++) {
@@ -624,8 +810,8 @@ router.route("/downoverall").post(async (req, res) => {
                     countrydata[i].month === makerdata[j].month &&
                     countrydata[i].coverage === makerdata[j].coverage
                 ) {
-                    temperal.push(countrydata[i])
-                } 
+                    temperal.push(countrydata[i]);
+                }
             }
         }
         //C-M to Transmission
@@ -639,12 +825,12 @@ router.route("/downoverall").post(async (req, res) => {
                     temperal[i].month === transdata[j].month &&
                     temperal[i].coverage === transdata[j].coverage
                 ) {
-                    temp.push(temperal[i])
+                    temp.push(temperal[i]);
                 }
             }
         }
         //C-M-T to Part Group
-        temperal = []
+        temperal = [];
         for (let i = 0; i < temp.length; i++) {
             for (let j = 0; j < pgroupdata.length; j++) {
                 if (
@@ -655,12 +841,12 @@ router.route("/downoverall").post(async (req, res) => {
                     temp[i].month === pgroupdata[j].month &&
                     temp[i].coverage === pgroupdata[j].coverage
                 ) {
-                    temperal.push(temp[i])
+                    temperal.push(temp[i]);
                 }
             }
         }
         //C-M-T-PG to Part Name
-        temp = []
+        temp = [];
         for (let i = 0; i < temperal.length; i++) {
             for (let j = 0; j < pnamedata.length; j++) {
                 if (
@@ -671,28 +857,28 @@ router.route("/downoverall").post(async (req, res) => {
                     temperal[i].month === pnamedata[j].month &&
                     temperal[i].coverage === pnamedata[j].coverage
                 ) {
-                    temp.push(temperal[i])
+                    temp.push(temperal[i]);
                 }
             }
         }
-        console.log("Fitting Criteria Values:", temperal.length, temp.length)
+        console.log("Fitting Criteria Values:", temperal.length, temp.length);
         //Purging if same value
-        if (temp.length>1) {
-            for (let i = 0; i < temp.length-1; i++) {
+        if (temp.length > 1) {
+            for (let i = 0; i < temp.length - 1; i++) {
                 if (
-                    temp[i].car_maker === temp[i+1].car_maker &&
-                    temp[i].part_group === temp[i+1].part_group &&
-                    temp[i].part_name === temp[i+1].part_name &&
-                    temp[i].year === temp[i+1].year &&
-                    temp[i].month === temp[i+1].month &&
-                    temp[i].coverage === temp[i+1].coverage
+                    temp[i].car_maker === temp[i + 1].car_maker &&
+                    temp[i].part_group === temp[i + 1].part_group &&
+                    temp[i].part_name === temp[i + 1].part_name &&
+                    temp[i].year === temp[i + 1].year &&
+                    temp[i].month === temp[i + 1].month &&
+                    temp[i].coverage === temp[i + 1].coverage
                 ) {
-                    temp.splice(i, 1)
-                    i=i-1
+                    temp.splice(i, 1);
+                    i = i - 1;
                 }
             }
         }
-        data = temp
+        data = temp;
     }
     //Export Criteria Check If Select All:
     const allCountry = await client.query(
@@ -700,204 +886,272 @@ router.route("/downoverall").post(async (req, res) => {
         from part_summary_info 
         group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
         order by country_name`
-    )
+    );
     const allMaker = await client.query(
         `select distinct car_brand_name
         from part_summary_info 
         group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
         order by car_brand_name`
-    )
+    );
     const allTrans = await client.query(
         `select distinct transmission_type
         from part_summary_info 
         group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production, transmission_type
         order by transmission_type`
-    )
-    const allPG = await client.query (
+    );
+    const allPG = await client.query(
         `select distinct part_group_name
         from part_summary_info 
         group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
         order by part_group_name`
-    )
-    const allPN = await client.query (
+    );
+    const allPN = await client.query(
         `select distinct original_part_name
         from part_summary_info 
         group by country_name, car_brand_name, part_group_name, original_part_name, start_of_production, end_of_production
         order by original_part_name`
-    )
-    console.log("Distinct Criteria Values:", allCountry.rowCount, allMaker.rowCount, allTrans.rowCount, allPG.rowCount, allPN.rowCount)
-    
-    var ecCountry = "", ecMaker = "", ecTrans = "", ecPG = "", ecPN = ""
+    );
+    console.log(
+        "Distinct Criteria Values:",
+        allCountry.rowCount,
+        allMaker.rowCount,
+        allTrans.rowCount,
+        allPG.rowCount,
+        allPN.rowCount
+    );
+
+    var ecCountry = "",
+        ecMaker = "",
+        ecTrans = "",
+        ecPG = "",
+        ecPN = "";
     //Country Criteria
-    if (allCountry.rowCount === req.body.country_name.length || (req.body.country_name.length===0 || req.body.country_name==="")) {
-        ecCountry = "All Country"
+    if (
+        allCountry.rowCount === req.body.country_name.length ||
+        req.body.country_name.length === 0 ||
+        req.body.country_name === ""
+    ) {
+        ecCountry = "All Country";
     } else if (allCountry.rowCount > req.body.country_name.length) {
         for (let i = 0; i < req.body.country_name.length; i++) {
-            if (i===0) {
-                ecCountry = req.body.country_name[i]
+            if (i === 0) {
+                ecCountry = req.body.country_name[i];
             } else {
-                ecCountry = ecCountry + ", " + req.body.country_name[i]
+                ecCountry = ecCountry + ", " + req.body.country_name[i];
             }
         }
     }
     //Maker Criteria
-    if (allMaker.rowCount === req.body.manufacturer_name.length || (req.body.manufacturer_name.length===0 || req.body.manufacturer_name==="")) {
-        ecMaker = "All Brand"
+    if (
+        allMaker.rowCount === req.body.manufacturer_name.length ||
+        req.body.manufacturer_name.length === 0 ||
+        req.body.manufacturer_name === ""
+    ) {
+        ecMaker = "All Brand";
     } else if (allMaker.rowCount > req.body.manufacturer_name.length) {
         for (let i = 0; i < req.body.manufacturer_name.length; i++) {
-            if (i===0) {
-                ecMaker = req.body.manufacturer_name[i]
+            if (i === 0) {
+                ecMaker = req.body.manufacturer_name[i];
             } else {
-                ecMaker = ecMaker + ", " + req.body.manufacturer_name[i]
+                ecMaker = ecMaker + ", " + req.body.manufacturer_name[i];
             }
         }
     }
     //Transmission Criteria
-    if (allTrans.rowCount === req.body.transmission_type.length || (req.body.transmission_type.length===0 || req.body.tranmission_type==="")) {
-        ecTrans = "All Transmission Type"
+    if (
+        allTrans.rowCount === req.body.transmission_type.length ||
+        req.body.transmission_type.length === 0 ||
+        req.body.tranmission_type === ""
+    ) {
+        ecTrans = "All Transmission Type";
     } else if (allTrans.rowCount > req.body.transmission_type.length) {
         for (let i = 0; i < req.body.transmission_type.length; i++) {
-            if (i===0) {
-                ecTrans = req.body.transmission_type[i]
+            if (i === 0) {
+                ecTrans = req.body.transmission_type[i];
             } else {
-                ecTrans = ecTrans + ", " + req.body.transmission_type[i]
+                ecTrans = ecTrans + ", " + req.body.transmission_type[i];
             }
         }
     }
     //Part Group Criteria
-    if (allPG.rowCount === req.body.part_group.length || (req.body.part_group.length===0 || req.body.part_group==="")) {
-        ecPG = "All Part Group"
+    if (
+        allPG.rowCount === req.body.part_group.length ||
+        req.body.part_group.length === 0 ||
+        req.body.part_group === ""
+    ) {
+        ecPG = "All Part Group";
     } else if (allPG.rowCount > req.body.part_group.length) {
         for (let i = 0; i < req.body.part_group.length; i++) {
-            if (i===0) {
-                ecPG = req.body.part_group[i]
+            if (i === 0) {
+                ecPG = req.body.part_group[i];
             } else {
-                ecPG = ecPG + ", " + req.body.part_group[i]
+                ecPG = ecPG + ", " + req.body.part_group[i];
             }
         }
     }
     //Part Name Criteria
-    console.log(allPN.rows)
-    if (allPN.rowCount === req.body.part_name.length || (req.body.part_name.length===0 || req.body.part_name==="")) {
-        ecPN = "All Part Name"
+    if (
+        allPN.rowCount === req.body.part_name.length ||
+        req.body.part_name.length === 0 ||
+        req.body.part_name === ""
+    ) {
+        ecPN = "All Part Name";
     } else if (allPN.rowCount > req.body.part_name.length) {
         for (let i = 0; i < req.body.part_name.length; i++) {
-            if (i===0) {
-                ecPN = req.body.part_name[i]
+            if (i === 0) {
+                ecPN = req.body.part_name[i];
             } else {
-                ecPN = ecPN + ", " + req.body.part_name[i]
+                ecPN = ecPN + ", " + req.body.part_name[i];
             }
         }
     }
     //Downloading
     const curr = new Date();
-        var month, day;
-        if (curr.getMonth()+1 < 10) {
-            month = "0"+(curr.getMonth()+1);
-        } else {
-            month = curr.getMonth()+1;
-        }
-        if (curr.getDate() < 10) {
-            day = "0"+curr.getDate();
-        } else {
-            day = curr.getDate();
-        }
-    var fileName = `GMP Data_${curr.getFullYear()}-${month}-${day}`
-    const CellName = ["A", "B", "C", "D", "E", "F"]
-    const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-    var wb = new excel.Workbook()
-    wb.xlsx.readFile("bin/constants/ReportTemplate.xlsx")
-    .then(function() {
-        var ws = wb.getWorksheet(1)
-        if (req.body.start_year!=="" && req.body.end_year!=="") {
-            var appendA1 =  "Export Criteria" + 
-                            "\r\n- Country = " + ecCountry +
-                            "\r\n- Car Maker = " + ecMaker +
-                            "\r\n- Transmission Type = " + ecTrans +
-                            "\r\n- Part Group = " + ecPG +
-                            "\r\n- Part Name = " + ecPN +
-                            "\r\n- From " + req.body.start_year + " To " + req.body.end_year 
-        } else if (req.body.start_year==="" && req.body.end_year !== "") {
-            var appendA1 =  "Export Criteria" + 
-                            "\r\n- Country = " + ecCountry +
-                            "\r\n- Car Maker = " + ecMaker +
-                            "\r\n- Transmission Type = " + ecTrans +
-                            "\r\n- Part Group = " + ecPG +
-                            "\r\n- Part Name = " + ecPN +
-                            "\r\n- To " + req.body.end_year
-        } else if (req.body.start_year!=="" && req.body.end_year==="") {
-            var appendA1 =  "Export Criteria" + 
-                            "\r\n- Country = " + ecCountry +
-                            "\r\n- Car Maker = " + ecMaker +
-                            "\r\n- Transmission Type = " + ecTrans +
-                            "\r\n- Part Group = " + ecPG +
-                            "\r\n- Part Name = " + ecPN +
-                            "\r\n- From " + req.body.start_year
-        } else if (req.body.start_year==="" && req.body.end_year==="") {
-            var appendA1 =  "Export Criteria" + 
-                            "\r\n- Country = " + ecCountry +
-                            "\r\n- Car Maker = " + ecMaker +
-                            "\r\n- Transmission Type = " + ecTrans +
-                            "\r\n- Part Group = " + ecPG +
-                            "\r\n- Part Name = " + ecPN
-        }
-        
-        if (req.body.start_cover!==req.body.end_cover) {
-            appendA1 = appendA1 + "\r\n- Coverage Range " + req.body.start_cover + " To " + req.body.end_cover
-        } else if (req.body.start_cover===req.body.end_cover) {
-            appendA1 = appendA1 + "\r\n- Coverage Range " + req.body.start_cover
+    var month, day;
+    if (curr.getMonth() + 1 < 10) {
+        month = "0" + (curr.getMonth() + 1);
+    } else {
+        month = curr.getMonth() + 1;
+    }
+    if (curr.getDate() < 10) {
+        day = "0" + curr.getDate();
+    } else {
+        day = curr.getDate();
+    }
+    var fileName = `GMP Data_${curr.getFullYear()}-${month}-${day}`;
+    const CellName = ["A", "B", "C", "D", "E", "F"];
+    const fileType =
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
+    var wb = new excel.Workbook();
+    wb.xlsx.readFile("bin/constants/ReportTemplate.xlsx").then(function () {
+        var ws = wb.getWorksheet(1);
+        if (req.body.start_year !== "" && req.body.end_year !== "") {
+            var appendA1 =
+                "Export Criteria" +
+                "\r\n- Country = " +
+                ecCountry +
+                "\r\n- Car Maker = " +
+                ecMaker +
+                "\r\n- Transmission Type = " +
+                ecTrans +
+                "\r\n- Part Group = " +
+                ecPG +
+                "\r\n- Part Name = " +
+                ecPN +
+                "\r\n- From " +
+                req.body.start_year +
+                " To " +
+                req.body.end_year;
+        } else if (req.body.start_year === "" && req.body.end_year !== "") {
+            var appendA1 =
+                "Export Criteria" +
+                "\r\n- Country = " +
+                ecCountry +
+                "\r\n- Car Maker = " +
+                ecMaker +
+                "\r\n- Transmission Type = " +
+                ecTrans +
+                "\r\n- Part Group = " +
+                ecPG +
+                "\r\n- Part Name = " +
+                ecPN +
+                "\r\n- To " +
+                req.body.end_year;
+        } else if (req.body.start_year !== "" && req.body.end_year === "") {
+            var appendA1 =
+                "Export Criteria" +
+                "\r\n- Country = " +
+                ecCountry +
+                "\r\n- Car Maker = " +
+                ecMaker +
+                "\r\n- Transmission Type = " +
+                ecTrans +
+                "\r\n- Part Group = " +
+                ecPG +
+                "\r\n- Part Name = " +
+                ecPN +
+                "\r\n- From " +
+                req.body.start_year;
+        } else if (req.body.start_year === "" && req.body.end_year === "") {
+            var appendA1 =
+                "Export Criteria" +
+                "\r\n- Country = " +
+                ecCountry +
+                "\r\n- Car Maker = " +
+                ecMaker +
+                "\r\n- Transmission Type = " +
+                ecTrans +
+                "\r\n- Part Group = " +
+                ecPG +
+                "\r\n- Part Name = " +
+                ecPN;
         }
 
-        ws.mergeCells('A1:F1')
-        var row = ws.getRow(1)
-        row.height = 120
-        const A1cell = ws.getCell("A1")
-        A1cell.value = appendA1
-        const bold = appendA1.indexOf("Export Criteria")
+        if (req.body.start_cover !== req.body.end_cover) {
+            appendA1 =
+                appendA1 +
+                "\r\n- Coverage Range " +
+                req.body.start_cover +
+                " To " +
+                req.body.end_cover;
+        } else if (req.body.start_cover === req.body.end_cover) {
+            appendA1 =
+                appendA1 + "\r\n- Coverage Range " + req.body.start_cover;
+        }
+
+        ws.mergeCells("A1:F1");
+        var row = ws.getRow(1);
+        row.height = 120;
+        const A1cell = ws.getCell("A1");
+        A1cell.value = appendA1;
+        const bold = appendA1.indexOf("Export Criteria");
         if (bold >= 0) {
             const textRuns = [
                 { text: appendA1.substring(0, bold), font: { bold: false } },
-                { text: 'Export Criteria', font: { bold: true } },
-                { text: appendA1.substring(bold + 'Export Criteria'.length), font: { bold: false } }
+                { text: "Export Criteria", font: { bold: true } },
+                {
+                    text: appendA1.substring(bold + "Export Criteria".length),
+                    font: { bold: false },
+                },
             ];
             A1cell.value = { richText: textRuns };
         }
         ws.getCell("A1").border = {
-            top: {style:'thin', color: {argb:'00000000'}},
-            left: {style:'thin', color: {argb:'00000000'}},
-            bottom: {style:'thin', color: {argb:'00000000'}},
-            right: {style:'thin', color: {argb:'00000000'}}
-        }
+            top: { style: "thin", color: { argb: "00000000" } },
+            left: { style: "thin", color: { argb: "00000000" } },
+            bottom: { style: "thin", color: { argb: "00000000" } },
+            right: { style: "thin", color: { argb: "00000000" } },
+        };
         for (let i = 0; i < data.length; i++) {
-            row = ws.getRow(i+3)
-            row.height = 20
-            row.getCell(1).value = data[i].car_maker
-            row.getCell(2).value = data[i].part_group
-            row.getCell(3).value = data[i].part_name
-            row.getCell(4).value = parseInt(data[i].year)
-            row.getCell(5).value = data[i].month
-            row.getCell(6).value = parseInt(data[i].coverage)
-            row.commit()
+            row = ws.getRow(i + 3);
+            row.height = 20;
+            row.getCell(1).value = data[i].car_maker;
+            row.getCell(2).value = data[i].part_group;
+            row.getCell(3).value = data[i].part_name;
+            row.getCell(4).value = parseInt(data[i].year);
+            row.getCell(5).value = data[i].month;
+            row.getCell(6).value = parseInt(data[i].coverage);
+            row.commit();
             for (let j = 0; j < CellName.length; j++) {
-                let Cell = CellName[j]+(i+3)
+                let Cell = CellName[j] + (i + 3);
                 ws.getCell(Cell).border = {
-                    top: {style:'thin', color: {argb:'00000000'}},
-                    left: {style:'thin', color: {argb:'00000000'}},
-                    bottom: {style:'thin', color: {argb:'00000000'}},
-                    right: {style:'thin', color: {argb:'00000000'}}
-                }
+                    top: { style: "thin", color: { argb: "00000000" } },
+                    left: { style: "thin", color: { argb: "00000000" } },
+                    bottom: { style: "thin", color: { argb: "00000000" } },
+                    right: { style: "thin", color: { argb: "00000000" } },
+                };
             }
         }
-            //Response
-        fileName = fileName+".xlsx"
+        //Response
+        fileName = fileName + ".xlsx";
         res.setHeader(
-            'Content-Disposition',
+            "Content-Disposition",
             `attachment; filename="${fileName}"`
-        )
+        );
         wb.xlsx.write(res).then(() => {
-            res.end()
-        })
-    })
-})
+            res.end();
+        });
+    });
+});
 
 module.exports = router;

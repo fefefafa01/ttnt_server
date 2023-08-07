@@ -2,6 +2,7 @@ var express = require("express");
 const app = express();
 var cors = require("cors");
 const helmet = require("helmet");
+const bodyParser = require("body-parser");
 const { Server } = require("socket.io");
 const session = require("express-session");
 var consts = require("./bin/constants/constindex")
@@ -16,6 +17,7 @@ var pdfRouter = require("./routes/pdfRouter"); //Added PDF Parts Detail Router
 var downloadRouter = require("./routes/downloadRouter"); //Added Downloading Router
 var tableRouter = require("./routes/tableRouter");
 var overallRouter = require("./routes/overallRouter");
+var periodRouter = require("./routes/periodRouter");
 
 /**
  * Create HTTP server.
@@ -56,6 +58,7 @@ app.use(
         },
     })
 );
+
 app.use("/auth", authRouter); // Auth Router
 app.use("/sch", searchRouter); //Search Router
 app.use("/exp", pdfRouter); //Details and PartList Router
@@ -63,6 +66,7 @@ app.use("/prof", profileRouter); //Profile Router
 app.use("/down", downloadRouter); //Download Router
 app.use("/table", tableRouter); //Table Router
 app.use("/overall", overallRouter); //Overall Router
+app.use("/period", periodRouter); //Period Router
 
 /**
  * Listen on provided port, on all network interfaces.
