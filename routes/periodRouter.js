@@ -4,7 +4,6 @@ const client = require("./connectdb");
 const logger = require("./logger.js");
 
 router.route("/summary").post(async (req, res) => {
-    // console.log(req.body);
     var data = { sum: 0, coverage: 0, coverage_rate: 0 };
     if (
         (req.body.country_name.length === 0 || req.body.country_name === "") &&
@@ -323,9 +322,6 @@ router.route("/summary").post(async (req, res) => {
                 }
             }
 
-            // console.log(temperal);
-            // console.log(temp);
-
             //Purging if same value
 
             if (temp.length > 0) {
@@ -342,7 +338,6 @@ router.route("/summary").post(async (req, res) => {
 });
 
 router.route("/brandChart").post(async (req, res) => {
-    // console.log(req.body);
     var brandName = [];
     var coverageRate = [];
     if (
@@ -660,8 +655,6 @@ router.route("/brandChart").post(async (req, res) => {
                 }
             }
         }
-        // console.log(temp.length);
-        // console.log(temp[1]);
 
         const mergedData = temp.reduce((acc, current) => {
             const existingIndex = acc.findIndex(
@@ -686,7 +679,6 @@ router.route("/brandChart").post(async (req, res) => {
             );
             coverageRate.push(coverage_rate);
         }
-        // console.log(brandName, coverageRate);
     }
 
     res.json({ brandName: brandName, coverageRate: coverageRate });

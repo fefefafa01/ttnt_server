@@ -331,7 +331,7 @@ router.route("/subGroup").post(async (req, res) => {
         where inf.car_info_id = $1`,
         [req.body]
     );
-    console.log("First Sub-group (pdfRouter.js):", partSubGroup.rows[0].part_sub_group_name);
+    console.log("First Sub-group (pdfRouter.js):", partSubGroup.rows[0]);
     //Results can be exported
     var totalPartSubGroup = [];
     for (let i = 0; i < partSubGroup.rowCount; i++) {
