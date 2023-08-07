@@ -285,61 +285,6 @@ router.route("/comp").post(async (req, res) => {
     res.json({ Comp: competitor });
 });
 
-router.route("/partGroup").post(async (req, res) => {
-    //Querying Car IDs
-    const partGroup = await client.query(
-        `select distinct part_group_name from part_car_info inf 
-        join (part p 
-        join (part_sub_group sg 
-			  join part_group pg on sg.part_group_id = pg.part_group_id) 
-			  on p.part_sub_group_id = sg.part_sub_group_id ) 
-		on inf.part_id = p.part_id 
-        where inf.car_info_id = $1`,
-        [req.body]
-    );
-    console.log(req.body);
-    //Results can be exported
-    var totalPartGroup = [];
-    for (let i = 0; i < partGroup.rowCount; i++) {
-        var partGroupArr = {};
-        partGroupArr.partGroup = partGroup.rows[i].part_group_name;
-        console.log("Here", partGroupArr);
-        totalPartGroup[i] = partGroupArr;
-    }
-
-    //Export Result
-    console.log(totalPartGroup);
-    console.log("Hay", totalPartGroup[1]);
-    res.json({ partGroupList: totalPartGroup });
-});
-
-router.route("/subGroup").post(async (req, res) => {
-    //Querying Car IDs
-    const partSubGroup = await client.query(
-        `select distinct part_sub_group_name from part_car_info inf 
-            join (part p 
-                join (part_sub_group sg 
-			        join part_group pg on sg.part_group_id = pg.part_group_id) 
-			    on p.part_sub_group_id = sg.part_sub_group_id ) 
-            on inf.part_id = p.part_id 
-        where inf.car_info_id = $1 and pg.part_group_name = $2`,
-        [req.body.subid, req.body.partGroup]
-    );
-    console.log(req.body);
-    //Results can be exported
-    var totalPartSubGroup = [];
-    for (let i = 0; i < partSubGroup.rowCount; i++) {
-        var subGroupArr = {};
-        subGroupArr.subGroup = partSubGroup.rows[i].part_sub_group_name;
-        totalPartSubGroup[i] = subGroupArr;
-    }
-
-    //Export Result
-    console.log(totalPartSubGroup);
-    console.log("Hay", totalPartSubGroup[1]);
-    res.json({ subGroupList: totalPartSubGroup });
-});
-
 router.route("/partList").post(async (req, res) => {
     //Querying Car IDs
     var partGroupId = [];
@@ -377,6 +322,31 @@ router.route("/partList").post(async (req, res) => {
     // console.log(totalPart);
     console.log("Hay", totalPart[1]);
     res.json({ partList: totalPart });
+});
+
+router.route("/subGroup").post(async (req, res) => {
+    //Querying Car IDs
+    const partSubGroup = await client.query(
+        `select distinct part_sub_group_name from part_car_info inf 
+        join (part p 
+        join part_sub_group sg on p.part_sub_group_id = sg.part_sub_group_id) p on inf.part_id = p.part_id 
+        where inf.car_info_id = $1`,
+        [req.body]
+    );
+    console.log(partSubGroup);
+    //Results can be exported
+    var totalPartSubGroup = [];
+    for (let i = 0; i < partSubGroup.rowCount; i++) {
+        var subGroupArr = {};
+        subGroupArr.subGroup = partSubGroup.rows[i].part_sub_group_name;
+        console.log("Here", subGroupArr);
+        totalPartSubGroup[i] = subGroupArr;
+    }
+
+    //Export Result
+    console.log(totalPartSubGroup);
+    console.log("Hay", totalPartSubGroup[1]);
+    res.json({ subGroupList: totalPartSubGroup });
 });
 
 module.exports = router;
