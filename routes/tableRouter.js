@@ -303,7 +303,7 @@ router.route("/result").post(async (req, res) => {
 
             for (let i = 0; i < req.body.competiter_part_code.length; i++) {
                 const competiter_part_code = await client.query(
-                    `SELECT car.car_info_id, com.competiter_part_code (((((car_information car
+                    `SELECT car.car_info_id, com.competiter_part_code FROM (((((car_information car
                         JOIN car_model model ON car.car_model_id = model.car_model_id)
                         JOIN car_series series ON model.car_series_id = series.car_series_id)
                         JOIN car_brand brand ON series.car_brand_id = brand.car_brand_id)
