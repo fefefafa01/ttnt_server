@@ -4,6 +4,7 @@ const client = require("./connectdb");
 const logger = require("./logger.js");
 
 router.route("/summary").post(async (req, res) => {
+    console.log(req.body);
     var data = { sum: 0, coverage: 0, coverage_rate: 0 };
     if (
         (req.body.country_name.length === 0 || req.body.country_name === "") &&
@@ -21,13 +22,11 @@ router.route("/summary").post(async (req, res) => {
             HAVING ROUND(SUM(coverage::numeric) / SUM(total) * 100) BETWEEN $1 AND $2`,
             [req.body.start_cover, req.body.end_cover]
         );
-        if (fullData.rowCount > 0) {
-            data.sum = fullData.rows[0].total_sum;
-            data.coverage = fullData.rows[0].total_coverage;
-            data.coverage_rate = parseInt(
-                (Number(data.coverage) * 100) / Number(data.sum)
-            );
-        }
+        data.sum = fullData.rows[0].total_sum;
+        data.coverage = fullData.rows[0].total_coverage;
+        data.coverage_rate = parseInt(
+            (Number(data.coverage) * 100) / Number(data.sum)
+        );
     } else {
         var countrydata = [],
             makerdata = [],
@@ -322,6 +321,9 @@ router.route("/summary").post(async (req, res) => {
                 }
             }
 
+            console.log(temperal);
+            console.log(temp);
+
             //Purging if same value
 
             if (temp.length > 0) {
@@ -338,8 +340,11 @@ router.route("/summary").post(async (req, res) => {
 });
 
 router.route("/brandChart").post(async (req, res) => {
+    console.log(req.body);
     var brandName = [];
     var coverageRate = [];
+    var partName = [];
+    var coveragePart = [];
     if (
         (req.body.country_name.length === 0 || req.body.country_name === "") &&
         (req.body.manufacturer_name.length === 0 ||
@@ -357,9 +362,50 @@ router.route("/brandChart").post(async (req, res) => {
             order by coverage_rate DESC;`,
             [req.body.start_cover, req.body.end_cover]
         );
-        for (let i = 0; i < fullData.rowCount; i++) {
-            brandName.push(fullData.rows[i].car_brand_name);
-            coverageRate.push(fullData.rows[i].coverage_rate);
+        if (fullData.rowCount > 0) {
+            for (let i = 0; i < fullData.rowCount; i++) {
+                brandName.push(fullData.rows[i].car_brand_name);
+                coverageRate.push(fullData.rows[i].coverage_rate);
+            }
+        } else {
+            brandName.push("");
+            coverageRate.push(0);
+        }
+
+        const fullPartData = await client.query(
+            `select original_part_name, ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS coverage_rate
+            from part_summary_info
+            group by original_part_name
+            HAVING ROUND(SUM(coverage::numeric) / SUM(total) * 100) BETWEEN $1 AND $2
+            order by coverage_rate DESC;`,
+            [req.body.start_cover, req.body.end_cover]
+        );
+        if (fullPartData.rowCount > 0) {
+            for (let i = 0; i < fullPartData.rowCount; i++) {
+                partName.push(fullPartData.rows[i].original_part_name);
+                coveragePart.push(fullPartData.rows[i].coverage_rate);
+            }
+        } else {
+            partName.push("");
+            coveragePart.push(0);
+        }
+        const fullSumData = await client.query(
+            `SELECT SUM(total) AS total_sum, SUM(coverage) AS total_coverage,
+                    ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS coverage_rate
+            FROM part_summary_info
+            HAVING ROUND(SUM(coverage::numeric) / SUM(total) * 100) BETWEEN $1 AND $2`,
+            [req.body.start_cover, req.body.end_cover]
+        );
+        if (fullSumData.rowCount > 0) {
+            data.sum = fullSumData.rows[0].total_sum;
+            data.coverage = fullSumData.rows[0].total_coverage;
+            data.coverage_rate = parseInt(
+                (Number(data.coverage) * 100) / Number(data.sum)
+            );
+        } else {
+            data.sum = 0;
+            data.coverage = 0;
+            data.coverage_rate = 0;
         }
     } else {
         var countrydata = [],
@@ -679,9 +725,16 @@ router.route("/brandChart").post(async (req, res) => {
             );
             coverageRate.push(coverage_rate);
         }
+        console.log(brandName, coverageRate);
     }
 
-    res.json({ brandName: brandName, coverageRate: coverageRate });
+    res.json({
+        brandName: brandName,
+        coverageRate: coverageRate,
+        partName: partName,
+        coveragePart: coveragePart,
+        data: data,
+    });
 });
 
 module.exports = router;
