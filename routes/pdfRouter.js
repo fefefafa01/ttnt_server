@@ -127,9 +127,9 @@ router.route("/premium").post(async (req, res) => {
             var count = 2;
             var PreQue = await client.query(
                 `SELECT aisin_premium_code, od_mm, od_inch, id_mm,
-                        "major dia_mm" AS major_dia_mm, spline, pcd_mm,
-                        "width od_mm" AS width_od_mm, 
-                        "width id_mm" AS width_id_mm, 
+                        "major_dia_mm" AS major_dia_mm, spline, pcd_mm,
+                        "width_od_mm" AS width_od_mm, 
+                        "width_id_mm" AS width_id_mm, 
                         length_inch, length_mm, height_mm 
                 FROM aisin_premium WHERE aisin_premium_id = $1`,
                 [premiumid[a]]
@@ -194,9 +194,9 @@ router.route("/subpremium").post(async (req, res) => {
             var count = 2;
             var PreQue = await client.query(
                 `SELECT aisin_sub_premium_code, od_mm, od_inch, id_mm,
-                        "major dia_mm" AS major_dia_mm, spline, pcd_mm,
-                        "width od_mm" AS width_od_mm, 
-                        "width id_mm" AS width_id_mm, 
+                        "major_dia_mm" AS major_dia_mm, spline, pcd_mm,
+                        "width_od_mm" AS width_od_mm, 
+                        "width_id_mm" AS width_id_mm, 
                         length_inch, length_mm, height_mm 
                 FROM aisin_sub_premium WHERE aisin_sub_premium_id = $1`,
                 [spremiumid[a]]
@@ -273,13 +273,16 @@ router.route("/comp").post(async (req, res) => {
             competitor.push(compo);
         }
     }
-    for (let i = 0; i < competitor.length - 1; i++) {
-        if (
-            competitor[i].Name === competitor[i + 1].Name &&
-            competitor[i].Number === competitor[i + 1].Number
-        ) {
-            competitor.splice(i, 1);
-            i--;
+    for (let i = 0; i < competitor.length; i++) {
+        for (let j=i+1; j < competitor.length; j++) {
+            if (
+                competitor[i].Name === competitor[j].Name &&
+                competitor[i].Number === competitor[j].Number
+            ) {
+                competitor.splice(i, 1);
+                i--;
+                break;
+            }
         }
     }
     res.json({ Comp: competitor });
@@ -303,7 +306,11 @@ router.route("/partList").post(async (req, res) => {
         where inf.car_info_id = $1 and sg.part_sub_group_name = $2 order by part_group_name`,
         [req.body.id, req.body.partSubGroup]
     );
-    console.log("First Part Info, export Car_ID (pdfRouter.js):", partinfo.rows[0].car_info_id);
+    if (partinfo.rowCount > 0) {
+        console.log("First Part Info, export Car_ID (pdfRouter.js):", partinfo.rows[0].car_info_id)
+    } else {
+        console.log("Part Info doesn't have any value (pdfRouter.js)")
+    }
     //Results can be exported
     var totalPart = [];
     for (let i = 0; i < partinfo.rowCount; i++) {
