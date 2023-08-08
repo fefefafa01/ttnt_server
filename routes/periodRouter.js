@@ -9,6 +9,7 @@ router.route("/brandChart").post(async (req, res) => {
     var coverageRate = [];
     var partName = [];
     var coveragePart = [];
+    var product = [];
     var data = { sum: 0, coverage: 0, coverage_rate: 0 };
     if (
         (req.body.country_name.length === 0 || req.body.country_name === "") &&
@@ -71,6 +72,18 @@ router.route("/brandChart").post(async (req, res) => {
             data.sum = 0;
             data.coverage = 0;
             data.coverage_rate = 0;
+        }
+        const totalData = await client.query(
+            `select car_brand_name, part_group_name, original_part_name, SUM(total) AS total, SUM(coverage) AS coverage,
+                    ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS coverage_rate
+            from part_summary_info 
+            group by car_brand_name, part_group_name, original_part_name
+            order by car_brand_name, part_group_name, original_part_name`
+        );
+        if (totalData.rowCount > 0) {
+            for (let i = 0; i < totalData.rowCount; i++) {
+                product.push(totalData.rows[i]);
+            }
         }
     } else {
         var countrydata = [],
@@ -424,6 +437,33 @@ router.route("/brandChart").post(async (req, res) => {
             }
             data.coverage_rate = parseInt((data.coverage * 100) / data.sum);
         }
+
+        const mergedTotal = temp.reduce((acc, current) => {
+            const existingIndex = acc.findIndex(
+                (item) =>
+                    item.car_brand_name === current.car_brand_name &&
+                    item.part_group_name === current.part_group_name &&
+                    item.original_part_name === current.original_part_name
+            );
+
+            if (existingIndex !== -1) {
+                acc[existingIndex].total += current.total;
+                acc[existingIndex].coverage += current.coverage;
+            } else {
+                acc.push({ ...current });
+            }
+
+            return acc;
+        }, []);
+
+        for (let i = 0; i < mergedTotal.length; i++) {
+            mergedTotal[i].coverage_rate = parseInt(
+                (Number(mergedTotal[i].coverage) * 100) /
+                    Number(mergedTotal[i].total)
+            );
+            product.push(mergedTotal[i]);
+        }
+        console.log("product", product);
     }
 
     res.json({
@@ -432,6 +472,7 @@ router.route("/brandChart").post(async (req, res) => {
         partName: partName,
         coveragePart: coveragePart,
         data: data,
+        temp: product,
     });
 });
 
