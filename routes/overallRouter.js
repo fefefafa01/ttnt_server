@@ -64,46 +64,6 @@ router.route("/overallTable").post(async (req, res) => {
         totalPartMT[i] = partMT.rows[i].original_part_name;
     }
 
-    const makerMT = await client.query(
-        `select distinct car_brand_name
-        from part_summary_info
-        where transmission_type = 'MT'
-        order by car_brand_name`
-    );
-    var totalMakerMT = [];
-    for (let i = 0; i < makerMT.rowCount; i++) {
-        totalMakerMT[i] = makerMT.rows[i].car_brand_name;
-    }
-
-    var overallValMT = [];
-    for (let i = 0; i < makerMT.rowCount; i++) {
-        var overallCheck = [];
-        for (let j = 0; j < partMT.rowCount; j++) {
-            const value = await client.query(
-                `select car_brand_name, original_part_name, sum(total) as total_sum, sum(coverage) as total_coverage
-            from part_summary_info
-            where transmission_type = 'MT' and car_brand_name = $1 and original_part_name = $2
-            group by car_brand_name, original_part_name, transmission_type
-            order by car_brand_name, original_part_name, transmission_type;`,
-                [totalMakerMT[i], totalPartMT[j]]
-            );
-            var overall = {};
-            if (value.rowCount === 0) {
-                overall.carName = totalMakerMT[i];
-                overall.partName = totalPartMT[j];
-                overall.sum = 0;
-                overall.coverage = 0;
-            } else if (value.rowCount === 1) {
-                overall.carName = totalMakerMT[i];
-                overall.partName = totalPartMT[j];
-                overall.sum = value.rows[0].total_sum;
-                overall.coverage = value.rows[0].total_coverage;
-            }
-            overallCheck[j] = overall;
-        }
-        overallValMT[i] = overallCheck;
-    }
-
     //for MTAT
     const partMTAT = await client.query(
         `select distinct original_part_name 
@@ -125,6 +85,35 @@ router.route("/overallTable").post(async (req, res) => {
     var totalMakerMTAT = [];
     for (let i = 0; i < makerMTAT.rowCount; i++) {
         totalMakerMTAT[i] = makerMTAT.rows[i].car_brand_name;
+    }
+
+    var overallValMT = [];
+    for (let i = 0; i < makerMTAT.rowCount; i++) {
+        var overallCheck = [];
+        for (let j = 0; j < partMT.rowCount; j++) {
+            const value = await client.query(
+                `select car_brand_name, original_part_name, sum(total) as total_sum, sum(coverage) as total_coverage
+            from part_summary_info
+            where transmission_type = 'MT' and car_brand_name = $1 and original_part_name = $2
+            group by car_brand_name, original_part_name, transmission_type
+            order by car_brand_name, original_part_name, transmission_type;`,
+                [totalMakerMTAT[i], totalPartMT[j]]
+            );
+            var overall = {};
+            if (value.rowCount === 0) {
+                overall.carName = totalMakerMTAT[i];
+                overall.partName = totalPartMT[j];
+                overall.sum = 0;
+                overall.coverage = 0;
+            } else if (value.rowCount === 1) {
+                overall.carName = totalMakerMTAT[i];
+                overall.partName = totalPartMT[j];
+                overall.sum = value.rows[0].total_sum;
+                overall.coverage = value.rows[0].total_coverage;
+            }
+            overallCheck[j] = overall;
+        }
+        overallValMT[i] = overallCheck;
     }
 
     var overallValMTAT = [];
@@ -859,7 +848,11 @@ router.route("/downoverall").post(async (req, res) => {
                 }
             }
         }
-        console.log("Fitting Criteria Values (overallRouter.js):", temperal.length, temp.length);
+        console.log(
+            "Fitting Criteria Values (overallRouter.js):",
+            temperal.length,
+            temp.length
+        );
         //Purging if same value
         if (temp.length > 1) {
             for (let i = 0; i < temp.length - 1; i++) {
