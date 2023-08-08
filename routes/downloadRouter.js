@@ -186,17 +186,11 @@ router.route("/partlist").post(async (req, res) => {
                     sub.length_inch AS slength_inch, 
                     sub.length_mm AS slength_mm, 
                     sub.height_mm AS sheight_mm
-                FROM (((((((((car_information car
-                    JOIN car_model model ON car.car_model_id = model.car_model_id)
-                    JOIN car_series series ON model.car_series_id = series.car_series_id)
-                    JOIN car_brand brand ON series.car_brand_id = brand.car_brand_id)
-                    JOIN manufacturer manu ON brand.manufacturer_id = manu.manufacturer_id)
-                    JOIN part_competiter_info com ON manu.manufacturer_id = com.manufacturer_id)
-                    JOIN part p ON com.part_id = p.part_id)
-                    JOIN part_aisin_sub_premium pas on pas.part_id = p.part_id)
-                    JOIN aisin_sub_premium sub on sub.aisin_sub_premium_id = pas.aisin_sub_premium_id)
-                    JOIN part_aisin_premium pap on pap.part_id = p.part_id)
-                    JOIN aisin_premium pre on pre.aisin_premium_id = pap.aisin_premium_id
+                FROM ((((part p 
+					join part_aisin_premium pap on p.part_id = pap.part_id)
+					join aisin_premium pre on pap.aisin_premium_id = pre.aisin_premium_id)
+					join part_aisin_sub_premium pas on p.part_id = pas.part_id)
+					join aisin_sub_premium sub on pas.aisin_sub_premium_id = sub.aisin_sub_premium_id)
                 WHERE p.part_code = $1 AND pre.aisin_premium_code = $2 AND sub.aisin_sub_premium_code = $3`, 
                     [codes[i], req.body[i].aisinPrem, req.body[i].aisinSubPrem]
             )
@@ -204,17 +198,13 @@ router.route("/partlist").post(async (req, res) => {
                 //Competitor Data
                 const compe = await client.query(
                     `SELECT manu.manufacturer_name
-                    FROM (((((((((car_information car
-                        JOIN car_model model ON car.car_model_id = model.car_model_id)
-                        JOIN car_series series ON model.car_series_id = series.car_series_id)
-                        JOIN car_brand brand ON series.car_brand_id = brand.car_brand_id)
-                        JOIN manufacturer manu ON brand.manufacturer_id = manu.manufacturer_id)
-                        JOIN part_competiter_info com ON manu.manufacturer_id = com.manufacturer_id)
-                        JOIN part p ON com.part_id = p.part_id)
-                        JOIN part_aisin_sub_premium pas on pas.part_id = p.part_id)
-                        JOIN aisin_sub_premium sub on sub.aisin_sub_premium_id = pas.aisin_sub_premium_id)
-                        JOIN part_aisin_premium pap on pap.part_id = p.part_id)
-                        JOIN aisin_premium pre on pre.aisin_premium_id = pap.aisin_premium_id
+                    FROM (((((((part p 
+                        join part_aisin_premium pap on p.part_id = pap.part_id)
+                        join aisin_premium pre on pap.aisin_premium_id = pre.aisin_premium_id)
+                        join part_aisin_sub_premium pas on p.part_id = pas.part_id)
+                        join aisin_sub_premium sub on pas.aisin_sub_premium_id = sub.aisin_sub_premium_id)
+                        join part_competiter_info pci on p.part_id = pci.part_id)
+                        join manufacturer manu on manu.manufacturer_id = pci.manufacturer_id))
                         WHERE p.part_code = $1 AND pre.aisin_premium_code = $2 AND sub.aisin_sub_premium_code = $3`,
                         [codes[i], req.body[i].aisinPrem, req.body[i].aisinSubPrem]
                 )
