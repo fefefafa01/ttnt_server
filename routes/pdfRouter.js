@@ -205,63 +205,6 @@ router.route("/partdetails").post(async (req, res) => {
     res.json({ Premium: TotalPre, SPremium: TotalSPre , Competitor: Competitor})
 })
 
-router.route("/comp").post(async (req, res) => {
-    //Variables
-    var partid = [];
-    manuid = [];
-    var competitor = [];
-
-    //Querying Corresponding Part IDs
-    const part = await client.query("SELECT * FROM part WHERE part_code = $1", [
-        req.body,
-    ]);
-    for (let i = 0; i < part.rowCount; i++) {
-        partid[i] = part.rows[i].part_id;
-    }
-
-    for (let i = 0; i < partid.length; i++) {
-        const pre = await client.query(
-            "SELECT * FROM part_competiter_info WHERE part_id = $1",
-            [partid[i]]
-        );
-        for (let a = 0; a < pre.rowCount; a++) {
-            manuid[a] = pre.rows[a].manufacturer_id;
-        }
-
-        //Getting Part Code and Manufacturer Name
-        for (let a = 0; a < manuid.length; a++) {
-            var comppart = await client.query(
-                "SELECT * FROM part_competiter_info WHERE manufacturer_id = $1",
-                [manuid[a]]
-            );
-            var manuname = await client.query(
-                "SELECT * FROM manufacturer WHERE manufacturer_id = $1",
-                [manuid[a]]
-            );
-            var compo = {};
-            compo.Name = manuname.rows[0].manufacturer_name;
-            compo.Number =
-                manuname.rows[0].manufacturer_name +
-                "-" +
-                comppart.rows[0].competiter_part_code;
-            competitor.push(compo);
-        }
-    }
-    for (let i = 0; i < competitor.length; i++) {
-        for (let j=i+1; j < competitor.length; j++) {
-            if (
-                competitor[i].Name === competitor[j].Name &&
-                competitor[i].Number === competitor[j].Number
-            ) {
-                competitor.splice(i, 1);
-                i--;
-                break;
-            }
-        }
-    }
-    res.json({ Comp: competitor });
-});
-
 router.route("/partList").post(async (req, res) => {
     //Querying Car IDs
     var partGroupId = [];
