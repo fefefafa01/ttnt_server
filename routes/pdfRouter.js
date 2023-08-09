@@ -97,139 +97,113 @@ router.route("/model").post(async (req, res) => {
     }
 });
 
-router.route("/premium").post(async (req, res) => {
+router.route("/partdetails").post(async (req, res) => {
     //Variables
-    var partid = [],
-        premiumid = [];
-    TotalPre = [];
+    var TotalPre = [], TotalSPre = [], Competitor = []
 
-    //Querying Corresponding Part IDs
-    const part = await client.query("SELECT * FROM part WHERE part_code = $1", [
-        req.body,
-    ]);
-    for (let i = 0; i < part.rowCount; i++) {
-        partid[i] = part.rows[i].part_id;
+    //Querying Premium Part Details
+    const PreDetails = await client.query(
+        `SELECT DISTINCT aisin_premium_code, od_mm, od_inch, id_mm,
+                "major_dia_mm" AS major_dia_mm, spline, pcd_mm,
+                "width_od_mm" AS width_od_mm, 
+                "width_id_mm" AS width_id_mm, 
+                length_inch, length_mm, height_mm
+        FROM 	((part p JOIN
+                part_aisin_premium pap on p.part_id = pap.part_id)
+                JOIN aisin_premium pre on pap.aisin_premium_id = pre.aisin_premium_id)
+        WHERE p.part_code = $1
+        ORDER BY aisin_premium_code ASC`,
+        [req.body]
+    )
+
+    //Parsing into an array
+    if (PreDetails.rowCount > 0) {
+        for (let i = 0; i < PreDetails.rowCount; i++) {
+            var PremiumArr = {}
+
+            PremiumArr.PremiumCode = PreDetails.rows[i].aisin_premium_code
+            PremiumArr.ODmm = PreDetails.rows[i].od_mm
+            PremiumArr.ODinch = PreDetails.rows[i].od_inch
+            PremiumArr.IDmm = PreDetails.rows[i].id_mm
+            PremiumArr.Major = PreDetails.rows[i].major_dia_mm
+            PremiumArr.Spline = PreDetails.rows[i].spline
+            PremiumArr.PCDmm = PreDetails.rows[i].pcd_mm
+            PremiumArr.WidthOD = PreDetails.rows[i].width_od_mm
+            PremiumArr.WidthID = PreDetails.rows[i].width_id_mm
+            PremiumArr.Lengthinch = PreDetails.rows[i].length_inch
+            PremiumArr.Lengthmm = PreDetails.rows[i].length_mm
+            PremiumArr.Heightmm = PreDetails.rows[i].height_mm
+
+            TotalPre.push(PremiumArr)
+        }
+    } else {
+        TotalPre = []
     }
 
-    //Querying Lists of Premium IDs
-    for (let i = 0; i < partid.length; i++) {
-        const pre = await client.query(
-            "SELECT * FROM part_aisin_premium WHERE part_id = $1",
-            [partid[i]]
-        );
+    // Querying Sub-Premium Part Details
+    const SubDetails = await client.query(
+        `SELECT DISTINCT aisin_sub_premium_code, od_mm, od_inch, id_mm,
+                "major_dia_mm" AS major_dia_mm, spline, pcd_mm,
+                "width_od_mm" AS width_od_mm, 
+                "width_id_mm" AS width_id_mm, 
+                length_inch, length_mm, height_mm
+        FROM 	((part p JOIN
+                part_aisin_sub_premium pas on p.part_id = pas.part_id)
+                JOIN aisin_sub_premium sub on pas.aisin_sub_premium_id = sub.aisin_sub_premium_id)
+        WHERE p.part_code = $1
+        ORDER BY aisin_sub_premium_code ASC`,
+        [req.body]
+    )
 
-        for (let a = 0; a < pre.rowCount; a++) {
-            premiumid[a] = pre.rows[a].aisin_premium_id;
+    if (SubDetails.rowCount > 0) {
+        for (let i = 0; i < SubDetails.rowCount; i++) {
+            var SPremiumArr = {}
+
+            SPremiumArr.SPremiumCode = SubDetails.rows[i].aisin_sub_premium_code
+            SPremiumArr.ODmm = SubDetails.rows[i].od_mm
+            SPremiumArr.ODinch = SubDetails.rows[i].od_inch
+            SPremiumArr.IDmm = SubDetails.rows[i].id_mm
+            SPremiumArr.Major = SubDetails.rows[i].major_dia_mm
+            SPremiumArr.Spline = SubDetails.rows[i].spline
+            SPremiumArr.PCDmm = SubDetails.rows[i].pcd_mm
+            SPremiumArr.WidthOD = SubDetails.rows[i].width_od_mm
+            SPremiumArr.WidthID = SubDetails.rows[i].width_id_mm
+            SPremiumArr.Lengthinch = SubDetails.rows[i].length_inch
+            SPremiumArr.Lengthmm = SubDetails.rows[i].length_mm
+            SPremiumArr.Heightmm = SubDetails.rows[i].height_mm
+
+            TotalSPre.push(SPremiumArr)
         }
-
-        //Querying Into Premium
-        for (let a = 0; a < premiumid.length; a++) {
-            var count = 2;
-            var PreQue = await client.query(
-                `SELECT aisin_premium_code, od_mm, od_inch, id_mm,
-                        "major_dia_mm" AS major_dia_mm, spline, pcd_mm,
-                        "width_od_mm" AS width_od_mm, 
-                        "width_id_mm" AS width_id_mm, 
-                        length_inch, length_mm, height_mm 
-                FROM aisin_premium WHERE aisin_premium_id = $1`,
-                [premiumid[a]]
-            );
-
-            //Concate into Array
-            var PremiumArr = {};
-            PremiumArr.PremiumCode = PreQue.rows[0].aisin_premium_code;
-            PremiumArr.ODmm = PreQue.rows[0].od_mm;
-            PremiumArr.ODinch = PreQue.rows[0].od_inch;
-            PremiumArr.IDmm = PreQue.rows[0].id_mm;
-            PremiumArr.Major = PreQue.rows[0].major_dia_mm;
-            PremiumArr.Spline = PreQue.rows[0].spline;
-            PremiumArr.PCDmm = PreQue.rows[0].pcd_mm;
-            PremiumArr.WidthOD = PreQue.rows[0].width_od_mm;
-            PremiumArr.WidthID = PreQue.rows[0].width_id_mm;
-            PremiumArr.Lengthinch = PreQue.rows[0].length_inch;
-            PremiumArr.Lengthmm = PreQue.rows[0].length_mm;
-            PremiumArr.Heightmm = PreQue.rows[0].height_mm;
-
-            for (let b = 0; b < TotalPre.length; b++) {
-                if (TotalPre[b].PremiumCode === PremiumArr.PremiumCode) {
-                    count = 0;
-                    break;
-                }
-            }
-            if (count !== 0 && PremiumArr.PremiumCode!==null) {
-                TotalPre.push(PremiumArr);
-            }
-        }
+    } else {
+        TotalSPre = []
     }
 
-    res.json({ Premium: { TotalPre } });
-});
+    //Querying Competitor Details
+    const CompDetails = await client.query(
+        `SELECT DISTINCT manu.manufacturer_name, pci.competiter_part_code
+        FROM 	((part p JOIN
+                part_competiter_info pci on p.part_id = pci.part_id)
+                JOIN manufacturer manu on pci.manufacturer_id = manu.manufacturer_id)
+        WHERE p.part_code = $1
+        ORDER BY manu.manufacturer_name ASC`,
+        [req.body]
+    )
 
-router.route("/subpremium").post(async (req, res) => {
-    //Variables
-    var partid = [];
-    spremiumid = [];
-    TotalSPre = [];
+    if (CompDetails.rowCount > 0) {
+        for (let i = 0; i < CompDetails.rowCount; i++) {
+            var CompArr = {}
 
-    //Querying Corresponding Part IDs
-    const part = await client.query("SELECT * FROM part WHERE part_code = $1", [
-        req.body,
-    ]);
-    for (let i = 0; i < part.rowCount; i++) {
-        partid[i] = part.rows[i].part_id;
+            CompArr.Name = CompDetails.rows[i].manufacturer_name
+            CompArr.Number = CompDetails.rows[i].manufacturer_name + "-" + CompDetails.rows[i].competiter_part_code
+
+            Competitor.push(CompArr)
+        }
+    } else {
+        Competitor = []
     }
 
-    //Querying Lists of Premium IDs
-    for (let i = 0; i < partid.length; i++) {
-        const pre = await client.query(
-            "SELECT * FROM part_aisin_sub_premium WHERE part_id = $1",
-            [partid[i]]
-        );
-        for (let a = 0; a < pre.rowCount; a++) {
-            spremiumid[a] = pre.rows[a].aisin_sub_premium_id;
-        }
-
-        //Querying Into Premium
-        for (let a = 0; a < spremiumid.length; a++) {
-            var count = 2;
-            var PreQue = await client.query(
-                `SELECT aisin_sub_premium_code, od_mm, od_inch, id_mm,
-                        "major_dia_mm" AS major_dia_mm, spline, pcd_mm,
-                        "width_od_mm" AS width_od_mm, 
-                        "width_id_mm" AS width_id_mm, 
-                        length_inch, length_mm, height_mm 
-                FROM aisin_sub_premium WHERE aisin_sub_premium_id = $1`,
-                [spremiumid[a]]
-            );
-            //Concate into Array
-            var SPremiumArr = {};
-            SPremiumArr.SPremiumCode = PreQue.rows[0].aisin_sub_premium_code;
-            SPremiumArr.ODmm = PreQue.rows[0].od_mm;
-            SPremiumArr.ODinch = PreQue.rows[0].od_inch;
-            SPremiumArr.IDmm = PreQue.rows[0].id_mm;
-            SPremiumArr.Major = PreQue.rows[0].major_dia_mm;
-            SPremiumArr.Spline = PreQue.rows[0].spline;
-            SPremiumArr.PCDmm = PreQue.rows[0].pcd_mm;
-            SPremiumArr.WidthOD = PreQue.rows[0].width_od_mm;
-            SPremiumArr.WidthID = PreQue.rows[0].width_id_mm;
-            SPremiumArr.Lengthinch = PreQue.rows[0].length_inch;
-            SPremiumArr.Lengthmm = PreQue.rows[0].length_mm;
-            SPremiumArr.Heightmm = PreQue.rows[0].height_mm;
-
-            for (let b = 0; b < TotalSPre.length; b++) {
-                if (TotalSPre[b].SPremiumCode === SPremiumArr.SPremiumCode) {
-                    count = 0;
-                    break;
-                }
-            }
-            if (count !== 0 && SPremiumArr.SPremiumCode!==null) {
-                TotalSPre.push(SPremiumArr);
-            }
-        }
-    }
-
-    res.json({ SPremium: { TotalSPre } });
-});
+    res.json({ Premium: TotalPre, SPremium: TotalSPre , Competitor: Competitor})
+})
 
 router.route("/comp").post(async (req, res) => {
     //Variables
