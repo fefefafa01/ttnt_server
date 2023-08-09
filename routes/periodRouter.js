@@ -3,8 +3,7 @@ const router = express.Router();
 const client = require("./connectdb");
 const logger = require("./logger.js");
 
-router.route("/brandChart").post(async (req, res) => {
-    console.log(req.body);
+router.route("/periodData").post(async (req, res) => {
     var brandName = [];
     var coverageRate = [];
     var partName = [];
@@ -473,6 +472,125 @@ router.route("/brandChart").post(async (req, res) => {
         coveragePart: coveragePart,
         data: data,
         temp: product,
+    });
+});
+
+router.route("/dashboard").post(async (req, res) => {
+    var country = "";
+    if (req.body.country_name.length === 0 || req.body.country_name === "") {
+        country += "All Countries";
+    } else {
+        const fullCountry = await client.query(`
+            select distinct country_name from part_summary_info
+        `);
+        if (req.body.country_name.length === fullCountry.rowCount) {
+            country += "All Countries";
+        } else {
+            for (let i = 0; i < req.body.country_name.length; i++) {
+                if (i === 0) {
+                    country += req.body.country_name[i];
+                } else {
+                    country += ", " + req.body.country_name[i];
+                }
+            }
+        }
+    }
+
+    var brand = "";
+    if (
+        req.body.manufacturer_name.length === 0 ||
+        req.body.manufacturer_name === ""
+    ) {
+        brand += "All Brands";
+    } else {
+        const fullBrand = await client.query(`
+            select distinct car_brand_name from part_summary_info
+        `);
+        if (req.body.manufacturer_name.length === fullBrand.rowCount) {
+            brand += "All Brands";
+        } else {
+            for (let i = 0; i < req.body.manufacturer_name.length; i++) {
+                if (i === 0) {
+                    brand += req.body.manufacturer_name[i];
+                } else {
+                    brand += ", " + req.body.manufacturer_name[i];
+                }
+            }
+        }
+    }
+
+    var Ttype = "";
+    if (
+        req.body.transmission_type.length === 0 ||
+        req.body.transmission_type === ""
+    ) {
+        Ttype += "All Transmission Types";
+    } else {
+        const fullTtype = await client.query(`
+            select distinct transmission_type from part_summary_info
+        `);
+        if (req.body.transmission_type.length === fullTtype.rowCount) {
+            Ttype += "All Transmission Types";
+        } else {
+            for (let i = 0; i < req.body.transmission_type.length; i++) {
+                if (i === 0) {
+                    Ttype += req.body.transmission_type[i];
+                } else {
+                    Ttype += ", " + req.body.transmission_type[i];
+                }
+            }
+        }
+    }
+
+    var PGroup = "";
+    if (req.body.part_group.length === 0 || req.body.part_group === "") {
+        PGroup += "All Part Group";
+    } else {
+        const fullPGroup = await client.query(`
+            select distinct part_group_name from part_summary_info
+        `);
+        if (req.body.part_group.length === fullPGroup.rowCount) {
+            PGroup += "All part Group";
+        } else {
+            for (let i = 0; i < req.body.part_group.length; i++) {
+                if (i === 0) {
+                    PGroup += req.body.part_group[i];
+                } else {
+                    PGroup += ", " + req.body.part_group[i];
+                }
+            }
+        }
+    }
+
+    var PName = "";
+    if (req.body.part_name.length === 0 || req.body.part_name === "") {
+        PName += "All Part Name";
+    } else {
+        const fullPName = await client.query(`
+            select distinct original_part_name from part_summary_info
+        `);
+        if (req.body.part_name.length === fullPName.rowCount) {
+            PName += "All Part Name";
+        } else {
+            for (let i = 0; i < req.body.part_name.length; i++) {
+                if (i === 0) {
+                    PName += req.body.part_name[i];
+                } else {
+                    PName += ", " + req.body.part_name[i];
+                }
+            }
+        }
+    }
+    res.json({
+        country: country,
+        brand: brand,
+        Ttype: Ttype,
+        PGroup: PGroup,
+        PName: PName,
+        StY: req.body.start_year,
+        EnY: req.body.end_year,
+        StC: req.body.start_cover,
+        EnC: req.body.end_cover,
     });
 });
 
