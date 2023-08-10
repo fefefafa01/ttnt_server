@@ -309,72 +309,83 @@ router.route("/periodData").post(async (req, res) => {
         var temperal = [],
             temp = [];
         //Country to Car-Maker
-        for (let i = 0; i < countrydata[0].length; i++) {
-            for (let j = 0; j < makerdata[0].length; j++) {
-                if (
-                    countrydata[0][i].car_brand_name ===
-                        makerdata[0][j].car_brand_name &&
-                    countrydata[0][i].part_group_name ===
-                        makerdata[0][j].part_group_name &&
-                    countrydata[0][i].original_part_name ===
-                        makerdata[0][j].original_part_name &&
-                    countrydata[0][i].total === makerdata[0][j].total &&
-                    countrydata[0][i].coverage === makerdata[0][j].coverage
-                ) {
-                    temperal.push(countrydata[0][i]);
+        for (let i = 0; i < countrydata.length; i++) {
+            for (let j = 0; j < countrydata[i].length; j++) {
+                for (let k = 0; k < makerdata.length; k++) {
+                    for (let l = 0; l < makerdata[k].length; l++) {
+                        if (
+                            countrydata[i][j].car_brand_name ===
+                                makerdata[k][l].car_brand_name &&
+                            countrydata[i][j].part_group_name ===
+                                makerdata[k][l].part_group_name &&
+                            countrydata[i][j].original_part_name ===
+                                makerdata[k][l].original_part_name &&
+                            countrydata[i][j].total === makerdata[k][l].total &&
+                            countrydata[i][j].coverage ===
+                                makerdata[k][l].coverage
+                        ) {
+                            temperal.push(countrydata[i][j]);
+                        }
+                    }
                 }
             }
         }
         //C-M to Transmission
         for (let i = 0; i < temperal.length; i++) {
-            for (let j = 0; j < transdata[0].length; j++) {
-                if (
-                    temperal[i].car_brand_name ===
-                        transdata[0][j].car_brand_name &&
-                    temperal[i].part_group_name ===
-                        transdata[0][j].part_group_name &&
-                    temperal[i].original_part_name ===
-                        transdata[0][j].original_part_name &&
-                    temperal[i].total === transdata[0][j].total &&
-                    temperal[i].coverage === transdata[0][j].coverage
-                ) {
-                    temp.push(temperal[i]);
+            for (let j = 0; j < transdata.length; j++) {
+                for (let k = 0; k < transdata[j].length; k++) {
+                    if (
+                        temperal[i].car_brand_name ===
+                            transdata[j][k].car_brand_name &&
+                        temperal[i].part_group_name ===
+                            transdata[j][k].part_group_name &&
+                        temperal[i].original_part_name ===
+                            transdata[j][k].original_part_name &&
+                        temperal[i].total === transdata[j][k].total &&
+                        temperal[i].coverage === transdata[j][k].coverage
+                    ) {
+                        temp.push(temperal[i]);
+                    }
                 }
             }
         }
         //C-M-T to Part Group
         temperal = [];
         for (let i = 0; i < temp.length; i++) {
-            for (let j = 0; j < pgroupdata[0].length; j++) {
-                if (
-                    temp[i].car_brand_name ===
-                        pgroupdata[0][j].car_brand_name &&
-                    temp[i].part_group_name ===
-                        pgroupdata[0][j].part_group_name &&
-                    temp[i].original_part_name ===
-                        pgroupdata[0][j].original_part_name &&
-                    temp[i].total === pgroupdata[0][j].total &&
-                    temp[i].coverage === pgroupdata[0][j].coverage
-                ) {
-                    temperal.push(temp[i]);
+            for (let j = 0; j < pgroupdata.length; j++) {
+                for (let k = 0; k < pgroupdata[j].length; k++) {
+                    if (
+                        temp[i].car_brand_name ===
+                            pgroupdata[j][k].car_brand_name &&
+                        temp[i].part_group_name ===
+                            pgroupdata[j][k].part_group_name &&
+                        temp[i].original_part_name ===
+                            pgroupdata[j][k].original_part_name &&
+                        temp[i].total === pgroupdata[j][k].total &&
+                        temp[i].coverage === pgroupdata[j][k].coverage
+                    ) {
+                        temperal.push(temp[i]);
+                    }
                 }
             }
         }
         //C-M-T-PG to Part Name
         temp = [];
         for (let i = 0; i < temperal.length; i++) {
-            for (let j = 0; j < pnamedata[0].length; j++) {
-                if (
-                    temperal[i].car_brand_name ===
-                        pnamedata[0][j].car_brand_name &&
-                    temperal[i].part_group_name ===
-                        pnamedata[0][j].part_group_name &&
-                    temperal[i].original_part_name ===
-                        pnamedata[0][j].original_part_name &&
-                    temperal[i].total === pnamedata[0][j].total &&
-                    temperal[i].coverage === pnamedata[0][j].coverage
-                ) {
-                    temp.push(temperal[i]);
+            for (let j = 0; j < pnamedata.length; j++) {
+                for (let k = 0; k < pnamedata[j].length; k++) {
+                    if (
+                        temperal[i].car_brand_name ===
+                            pnamedata[j][k].car_brand_name &&
+                        temperal[i].part_group_name ===
+                            pnamedata[j][k].part_group_name &&
+                        temperal[i].original_part_name ===
+                            pnamedata[j][k].original_part_name &&
+                        temperal[i].total === pnamedata[j][k].total &&
+                        temperal[i].coverage === pnamedata[j][k].coverage
+                    ) {
+                        temp.push(temperal[i]);
+                    }
                 }
             }
         }
