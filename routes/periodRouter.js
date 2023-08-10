@@ -9,6 +9,18 @@ router.route("/periodData").post(async (req, res) => {
     var partName = [];
     var coveragePart = [];
     var product = [];
+    function compareObjects(a, b) {
+        const ratioA = a.coverage / a.total;
+        const ratioB = b.coverage / b.total;
+
+        if (ratioA > ratioB) {
+            return -1; // Sort in descending order
+        }
+        if (ratioA < ratioB) {
+            return 1;
+        }
+        return 0;
+    }
     var data = { sum: 0, coverage: 0, coverage_rate: 0 };
     if (
         (req.body.country_name.length === 0 || req.body.country_name === "") &&
@@ -20,8 +32,9 @@ router.route("/periodData").post(async (req, res) => {
         (req.body.part_name.length === 0 || req.body.part_name === "")
     ) {
         const fullData = await client.query(
-            `select car_brand_name, ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS coverage_rate
+            `select car_brand_name, SUM(coverage) as coverage,  SUM(total) as total, ROUND(SUM(coverage::numeric) / SUM(total) * 100) as coverage_rate
             from part_summary_info
+            where coverage < total
             group by car_brand_name
             HAVING ROUND(SUM(coverage::numeric) / SUM(total) * 100) BETWEEN $1 AND $2
             order by coverage_rate DESC;`,
@@ -30,7 +43,12 @@ router.route("/periodData").post(async (req, res) => {
         if (fullData.rowCount > 0) {
             for (let i = 0; i < fullData.rowCount; i++) {
                 brandName.push(fullData.rows[i].car_brand_name);
-                coverageRate.push(fullData.rows[i].coverage_rate);
+                coverageRate.push(
+                    parseInt(
+                        (Number(fullData.rows[i].coverage) * 100) /
+                            Number(fullData.rows[i].total)
+                    )
+                );
             }
         } else {
             brandName.push("");
@@ -38,8 +56,9 @@ router.route("/periodData").post(async (req, res) => {
         }
 
         const fullPartData = await client.query(
-            `select original_part_name, ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS coverage_rate
+            `select original_part_name, SUM(coverage) as coverage,  SUM(total) as total, ROUND(SUM(coverage::numeric) / SUM(total) * 100) as coverage_rate
             from part_summary_info
+            where coverage < total
             group by original_part_name
             HAVING ROUND(SUM(coverage::numeric) / SUM(total) * 100) BETWEEN $1 AND $2
             order by coverage_rate DESC;`,
@@ -48,7 +67,12 @@ router.route("/periodData").post(async (req, res) => {
         if (fullPartData.rowCount > 0) {
             for (let i = 0; i < fullPartData.rowCount; i++) {
                 partName.push(fullPartData.rows[i].original_part_name);
-                coveragePart.push(fullPartData.rows[i].coverage_rate);
+                coveragePart.push(
+                    parseInt(
+                        (Number(fullPartData.rows[i].coverage) * 100) /
+                            Number(fullPartData.rows[i].total)
+                    )
+                );
             }
         } else {
             partName.push("");
@@ -58,6 +82,7 @@ router.route("/periodData").post(async (req, res) => {
             `SELECT SUM(total) AS total_sum, SUM(coverage) AS total_coverage,
                     ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS coverage_rate
             FROM part_summary_info
+            where coverage < total
             HAVING ROUND(SUM(coverage::numeric) / SUM(total) * 100) BETWEEN $1 AND $2`,
             [req.body.start_cover, req.body.end_cover]
         );
@@ -76,8 +101,11 @@ router.route("/periodData").post(async (req, res) => {
             `select car_brand_name, part_group_name, original_part_name, SUM(total) AS total, SUM(coverage) AS coverage,
                     ROUND(SUM(coverage::numeric) / SUM(total) * 100) AS coverage_rate
             from part_summary_info 
+            where coverage < total
             group by car_brand_name, part_group_name, original_part_name
-            order by car_brand_name, part_group_name, original_part_name`
+            HAVING ROUND(SUM(coverage::numeric) / SUM(total) * 100) BETWEEN $1 AND $2
+            order by car_brand_name, part_group_name, original_part_name`,
+            [req.body.start_cover, req.body.end_cover]
         );
         if (totalData.rowCount > 0) {
             for (let i = 0; i < totalData.rowCount; i++) {
@@ -389,7 +417,7 @@ router.route("/periodData").post(async (req, res) => {
                 }
             }
         }
-
+        //Brand
         const mergedData = temp.reduce((acc, current) => {
             const existingIndex = acc.findIndex(
                 (item) => item.car_brand_name === current.car_brand_name
@@ -404,7 +432,7 @@ router.route("/periodData").post(async (req, res) => {
 
             return acc;
         }, []);
-
+        mergedData.sort(compareObjects);
         for (let i = 0; i < mergedData.length; i++) {
             brandName.push(mergedData[i].car_brand_name);
             var coverage_rate = parseInt(
@@ -414,7 +442,7 @@ router.route("/periodData").post(async (req, res) => {
             coverageRate.push(coverage_rate);
         }
         console.log(brandName, coverageRate);
-
+        //Part
         const mergePart = temp.reduce((acc, current) => {
             const existingIndex = acc.findIndex(
                 (item) => item.original_part_name === current.original_part_name
@@ -429,19 +457,20 @@ router.route("/periodData").post(async (req, res) => {
 
             return acc;
         }, []);
+        mergePart.sort(compareObjects);
 
         for (let i = 0; i < mergePart.length; i++) {
-            partName.push(mergedData[i].original_part_name);
+            partName.push(mergePart[i].original_part_name);
             var coverage_rate = parseInt(
-                (Number(mergedData[i].coverage) * 100) /
-                    Number(mergedData[i].total)
+                (Number(mergePart[i].coverage) * 100) /
+                    Number(mergePart[i].total)
             );
             coveragePart.push(coverage_rate);
         }
         console.log(partName, coveragePart);
-
+        //SUMMARY
         if (temp.length > 0) {
-            for (let i = 0; i < temp.length - 1; i++) {
+            for (let i = 0; i < temp.length; i++) {
                 data.sum += Number(temp[i].total);
                 data.coverage += Number(temp[i].coverage);
             }
