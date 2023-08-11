@@ -21,6 +21,34 @@ router.route("/periodData").post(async (req, res) => {
         }
         return 0;
     }
+
+    function compareObjectsProduct(a, b) {
+        // First, compare by make in alphabetical order
+        if (a.car_brand_name < b.car_brand_name) {
+            return -1;
+        }
+        if (a.car_brand_name > b.car_brand_name) {
+            return 1;
+        }
+
+        // If maker are equal, compare by groups (name) in alphabetical order
+        if (a.part_group_name < b.part_group_name) {
+            return -1;
+        }
+        if (a.part_group_name > b.part_group_name) {
+            return 1;
+        }
+
+        // If groups are equal, compare by names (name) in alphabetical order
+        if (a.original_part_name < b.original_part_name) {
+            return -1;
+        }
+        if (a.original_part_name > b.original_part_name) {
+            return 1;
+        }
+
+        return 0;
+    }
     var data = { sum: 0, coverage: 0, coverage_rate: 0 };
     if (
         (req.body.country_name.length === 0 || req.body.country_name === "") &&
@@ -476,7 +504,7 @@ router.route("/periodData").post(async (req, res) => {
             }
             data.coverage_rate = parseInt((data.coverage * 100) / data.sum);
         }
-
+        //Product
         const mergedTotal = temp.reduce((acc, current) => {
             const existingIndex = acc.findIndex(
                 (item) =>
@@ -494,7 +522,7 @@ router.route("/periodData").post(async (req, res) => {
 
             return acc;
         }, []);
-
+        mergedTotal.sort(compareObjectsProduct);
         for (let i = 0; i < mergedTotal.length; i++) {
             mergedTotal[i].coverage_rate = parseInt(
                 (Number(mergedTotal[i].coverage) * 100) /
